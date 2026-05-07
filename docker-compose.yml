@@ -1,0 +1,47 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: ctruh-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: ctruh
+
+  server:
+    build:
+      context: ./server
+    container_name: ctruh-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      MONGO_URI: mongodb://mongo:27017/ctruh
+      NODE_ENV: development
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+
+  client:
+    build:
+      context: ./client
+    container_name: ctruh-client
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - server
+
+volumes:
+  mongo-data:
