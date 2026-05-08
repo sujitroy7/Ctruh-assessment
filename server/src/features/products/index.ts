@@ -15,8 +15,22 @@ import {
   updateProductHandler,
   deleteProductHandler,
 } from "./product.controller";
+import { requireAuth, requireRole } from "../auth/auth.middleware";
 
 const router = Router();
+
+const ownerOnly = [requireAuth, requireRole("owner")];
+
+const authErrorResponses = {
+  401: {
+    description: "Not authenticated",
+    content: { "application/json": { schema: z.object({ message: z.string() }) } },
+  },
+  403: {
+    description: "Forbidden — owner role required",
+    content: { "application/json": { schema: z.object({ message: z.string() }) } },
+  },
+};
 
 // ======================================================
 // ROUTE: GET ALL PRODUCTS
@@ -56,11 +70,7 @@ productsRegistry.registerPath({
     },
     404: {
       description: "Product not found",
-      content: {
-        "application/json": {
-          schema: z.object({ message: z.string() }),
-        },
-      },
+      content: { "application/json": { schema: z.object({ message: z.string() }) } },
     },
   },
 });
@@ -74,6 +84,7 @@ productsRegistry.registerPath({
   path: "/products",
   summary: "Create a product",
   tags: ["Products"],
+  security: [{ cookieAuth: [] }],
   request: {
     body: {
       content: { "application/json": { schema: CreateProductBodySchema } },
@@ -89,9 +100,10 @@ productsRegistry.registerPath({
       description: "Validation failed",
       content: { "application/json": { schema: z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) }) } },
     },
+    ...authErrorResponses,
   },
 });
-router.post("/", createProductHandler);
+router.post("/", ...ownerOnly, createProductHandler);
 
 // ======================================================
 // ROUTE: UPDATE PRODUCT
@@ -101,6 +113,7 @@ productsRegistry.registerPath({
   path: "/products/{id}",
   summary: "Update a product",
   tags: ["Products"],
+  security: [{ cookieAuth: [] }],
   request: {
     params: z.object({ id: z.string() }),
     body: {
@@ -125,9 +138,10 @@ productsRegistry.registerPath({
       description: "Validation failed",
       content: { "application/json": { schema: z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) }) } },
     },
+    ...authErrorResponses,
   },
 });
-router.patch("/:id", updateProductHandler);
+router.patch("/:id", ...ownerOnly, updateProductHandler);
 
 // ======================================================
 // ROUTE: DELETE PRODUCT
@@ -137,6 +151,7 @@ productsRegistry.registerPath({
   path: "/products/{id}",
   summary: "Delete a product",
   tags: ["Products"],
+  security: [{ cookieAuth: [] }],
   request: {
     params: z.object({ id: z.string() }),
   },
@@ -150,8 +165,9 @@ productsRegistry.registerPath({
       description: "Product not found",
       content: { "application/json": { schema: z.object({ message: z.string() }) } },
     },
+    ...authErrorResponses,
   },
 });
-router.delete("/:id", deleteProductHandler);
+router.delete("/:id", ...ownerOnly, deleteProductHandler);
 
 export default router;
