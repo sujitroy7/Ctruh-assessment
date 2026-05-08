@@ -1,6 +1,6 @@
 import { FilterQuery } from "mongoose";
 import { isValidObjectId } from "mongoose";
-import { Product, IProduct } from "./product.model";
+import { Product, ProductItem, IProduct, IProductItem } from "./product.model";
 import { isDuplicateKeyError } from "../../utils/mongoose";
 
 export interface ProductFilters {
@@ -17,30 +17,65 @@ export interface ProductFilters {
 export async function getProducts(filters: ProductFilters) {
   const { page, limit, gender, type, color, minPrice, maxPrice, search } = filters;
 
-  const query: FilterQuery<IProduct> = { is_deleted: false };
-
-  if (gender) query.gender = gender;
-  if (type) query.type = type;
-  if (color) query.color = color;
-
+  const itemQuery: FilterQuery<IProductItem> = { is_deleted: false };
+  if (gender) itemQuery.gender = gender;
+  if (type) itemQuery.type = type;
+  if (color) itemQuery.color = color;
   if (minPrice !== undefined || maxPrice !== undefined) {
-    query.price = {};
-    if (minPrice !== undefined) query.price.$gte = minPrice;
-    if (maxPrice !== undefined) query.price.$lte = maxPrice;
+    itemQuery.price = {};
+    if (minPrice !== undefined) itemQuery.price.$gte = minPrice;
+    if (maxPrice !== undefined) itemQuery.price.$lte = maxPrice;
   }
 
+  // When search is provided, match product name OR item type/gender
+  let productIdsFromSearch: string[] | null = null;
   if (search) {
     const re = new RegExp(search, "i");
-    query.$or = [{ name: re }, { type: re }, { gender: re }];
+    const [itemMatches, productMatches] = await Promise.all([
+      ProductItem.distinct("product_id", { ...itemQuery, $or: [{ type: re }, { gender: re }] }),
+      Product.distinct("_id", { is_deleted: false, name: re }),
+    ]);
+    productIdsFromSearch = [
+      ...new Set([
+        ...itemMatches.map((id: unknown) => id!.toString()),
+        ...productMatches.map((id: unknown) => id!.toString()),
+      ]),
+    ];
   }
 
-  const [data, total] = await Promise.all([
-    Product.find(query)
+  // Find product IDs that have at least one matching item
+  const matchingProductIds = await ProductItem.distinct("product_id", itemQuery);
+
+  const productQuery: FilterQuery<IProduct> = {
+    _id: { $in: matchingProductIds },
+    is_deleted: false,
+  };
+  if (productIdsFromSearch !== null) {
+    productQuery._id = { $in: matchingProductIds.filter((id: unknown) => productIdsFromSearch!.includes(id!.toString())) };
+  }
+
+  const [products, total] = await Promise.all([
+    Product.find(productQuery)
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
-    Product.countDocuments(query),
+    Product.countDocuments(productQuery),
   ]);
+
+  const pageProductIds = products.map((p) => p._id);
+  const items = await ProductItem.find({ ...itemQuery, product_id: { $in: pageProductIds } }).lean();
+
+  const itemsByProduct = new Map<string, typeof items>();
+  for (const item of items) {
+    const key = item.product_id.toString();
+    if (!itemsByProduct.has(key)) itemsByProduct.set(key, []);
+    itemsByProduct.get(key)!.push(item);
+  }
+
+  const data = products.map((p) => ({
+    ...p,
+    items: itemsByProduct.get(p._id.toString()) ?? [],
+  }));
 
   return { data, total, page, limit };
 }
@@ -48,51 +83,36 @@ export async function getProducts(filters: ProductFilters) {
 export async function getProductById(id: string) {
   if (!isValidObjectId(id)) return { error: "invalid_id" as const };
 
-  const product = await Product.findOne({
-    _id: id,
-    is_deleted: false,
-  }).lean();
-
+  const product = await Product.findOne({ _id: id, is_deleted: false }).lean();
   if (!product) return { error: "not_found" as const };
 
-  return { data: product };
+  const items = await ProductItem.find({ product_id: id, is_deleted: false }).lean();
+  return { data: { ...product, items } };
 }
 
 export async function createProduct(body: {
-  idempotency_key: string;
   name: string;
-  gender: string;
-  type: string;
-  color: string;
-  price: number;
-  stock: number;
-  images: string[];
-}) {
-  try {
-    const product = await Product.create(body);
-    return { data: product.toObject(), created: true };
-  } catch (err: unknown) {
-    // Duplicate idempotency_key — return the previously created product
-    if (isDuplicateKeyError(err)) {
-      const existing = await Product.findOne({ idempotency_key: body.idempotency_key }).lean();
-      if (existing) return { data: existing, created: false };
-    }
-    throw err;
-  }
-}
-
-export async function updateProduct(
-  id: string,
-  body: Partial<{
-    name: string;
+  items: Array<{
+    idempotency_key?: string;
     gender: string;
     type: string;
     color: string;
     price: number;
     stock: number;
     images: string[];
-  }>,
-) {
+  }>;
+}) {
+  const product = await Product.create({ name: body.name });
+
+  const items = await ProductItem.insertMany(
+    body.items.map((item) => ({ ...item, product_id: product._id })),
+    { ordered: false },
+  );
+
+  return { data: { ...product.toObject(), items: items.map((i) => i.toObject()) } };
+}
+
+export async function updateProduct(id: string, body: { name?: string }) {
   if (!isValidObjectId(id)) return { error: "invalid_id" as const };
 
   const product = await Product.findOneAndUpdate(
@@ -103,7 +123,8 @@ export async function updateProduct(
 
   if (!product) return { error: "not_found" as const };
 
-  return { data: product };
+  const items = await ProductItem.find({ product_id: id, is_deleted: false }).lean();
+  return { data: { ...product, items } };
 }
 
 export async function deleteProduct(id: string) {
@@ -116,6 +137,76 @@ export async function deleteProduct(id: string) {
   ).lean();
 
   if (!product) return { error: "not_found" as const };
+
+  await ProductItem.updateMany({ product_id: id }, { $set: { is_deleted: true } });
+
+  return { data: null };
+}
+
+export async function addProductItem(
+  productId: string,
+  body: {
+    idempotency_key?: string;
+    gender: string;
+    type: string;
+    color: string;
+    price: number;
+    stock: number;
+    images: string[];
+  },
+) {
+  if (!isValidObjectId(productId)) return { error: "invalid_id" as const };
+
+  const product = await Product.findOne({ _id: productId, is_deleted: false }).lean();
+  if (!product) return { error: "not_found" as const };
+
+  try {
+    const item = await ProductItem.create({ ...body, product_id: productId });
+    return { data: item.toObject(), created: true };
+  } catch (err: unknown) {
+    if (isDuplicateKeyError(err) && body.idempotency_key) {
+      const existing = await ProductItem.findOne({ idempotency_key: body.idempotency_key }).lean();
+      if (existing) return { data: existing, created: false };
+    }
+    throw err;
+  }
+}
+
+export async function updateProductItem(
+  productId: string,
+  itemId: string,
+  body: Partial<{
+    gender: string;
+    type: string;
+    color: string;
+    price: number;
+    stock: number;
+    images: string[];
+  }>,
+) {
+  if (!isValidObjectId(productId) || !isValidObjectId(itemId)) return { error: "invalid_id" as const };
+
+  const item = await ProductItem.findOneAndUpdate(
+    { _id: itemId, product_id: productId, is_deleted: false },
+    { $set: body },
+    { new: true },
+  ).lean();
+
+  if (!item) return { error: "not_found" as const };
+
+  return { data: item };
+}
+
+export async function deleteProductItem(productId: string, itemId: string) {
+  if (!isValidObjectId(productId) || !isValidObjectId(itemId)) return { error: "invalid_id" as const };
+
+  const item = await ProductItem.findOneAndUpdate(
+    { _id: itemId, product_id: productId, is_deleted: false },
+    { $set: { is_deleted: true } },
+    { new: true },
+  ).lean();
+
+  if (!item) return { error: "not_found" as const };
 
   return { data: null };
 }

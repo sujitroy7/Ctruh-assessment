@@ -1,7 +1,12 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
 export interface IProduct extends Document {
   name: string;
+  is_deleted: boolean;
+}
+
+export interface IProductItem extends Document {
+  product_id: Types.ObjectId;
   gender: string;
   type: string;
   color: string;
@@ -15,6 +20,14 @@ export interface IProduct extends Document {
 const ProductSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true, trim: true },
+    is_deleted: { type: Boolean, default: false },
+  },
+  { timestamps: true },
+);
+
+const ProductItemSchema = new Schema<IProductItem>(
+  {
+    product_id: { type: Schema.Types.ObjectId, ref: "Product", required: true, index: true },
     gender: { type: String, required: true, trim: true },
     type: { type: String, required: true, trim: true },
     color: { type: String, required: true, trim: true },
@@ -28,3 +41,4 @@ const ProductSchema = new Schema<IProduct>(
 );
 
 export const Product = model<IProduct>("Product", ProductSchema);
+export const ProductItem = model<IProductItem>("ProductItem", ProductItemSchema, "product_items");
