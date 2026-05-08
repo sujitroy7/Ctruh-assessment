@@ -18,12 +18,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={geist.className}>
-        <SessionProvider>
-          <Navbar />
-          <main className="max-w-6xl mx-auto px-4 py-8">{children}</main>
-        </SessionProvider>
-      </body>
+      <SessionProvider>
+        <body className={geist.className}>
+          <div className="grid grid-rows-[64px_1fr] min-h-svh">
+            <Navbar />
+            <main className="max-w-6xl mx-auto w-full">{children}</main>
+          </div>
+        </body>
+      </SessionProvider>
     </html>
   );
 }

@@ -90,7 +90,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+    <div className="bg-gray-900 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Card — dark theme to visually distinguish from customer login */}
         <div className="bg-gray-800 rounded-2xl shadow-xl border border-gray-700 p-8">
