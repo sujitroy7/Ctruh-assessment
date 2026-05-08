@@ -11,7 +11,7 @@ export interface ICart extends Document {
 const CartSchema = new Schema<ICart>(
   {
     customer_id: { type: Schema.Types.ObjectId, ref: "Customer", required: true, index: true },
-    product_item_id: { type: Schema.Types.ObjectId, ref: "ProductItem", required: true },
+    product_item_id: { type: Schema.Types.ObjectId, required: true },
     item_qty: { type: Number, required: true, min: 1, default: 1 },
     purchased: { type: Boolean, default: false },
     is_deleted: { type: Boolean, default: false },

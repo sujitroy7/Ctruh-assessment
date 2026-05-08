@@ -1,6 +1,6 @@
 import { isValidObjectId } from "mongoose";
 import { Cart } from "./cart.model";
-import { ProductItem } from "../products/product.model";
+import { Product } from "../products/product.model";
 
 export async function getCart(customerId: string) {
   if (!isValidObjectId(customerId)) return { error: "invalid_id" as const };
@@ -14,7 +14,10 @@ export async function addToCart(customerId: string, body: { product_item_id: str
     return { error: "invalid_id" as const };
   }
 
-  const productItem = await ProductItem.findOne({ _id: body.product_item_id, is_deleted: false }).lean();
+  const productItem = await Product.findOne({
+    is_deleted: false,
+    items: { $elemMatch: { _id: body.product_item_id, is_deleted: false } },
+  }).lean();
   if (!productItem) return { error: "product_not_found" as const };
 
   const existing = await Cart.findOne({
