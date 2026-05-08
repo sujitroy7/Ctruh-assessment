@@ -22,21 +22,11 @@ import {
   deleteProductItemHandler,
 } from "./product.controller";
 import { requireAuth, requireRole } from "../auth/auth.middleware";
+import { authErrorResponses } from "../../utils/openapi";
 
 const router = Router();
 
 const ownerOnly = [requireAuth, requireRole("owner")];
-
-const authErrorResponses = {
-  401: {
-    description: "Not authenticated",
-    content: { "application/json": { schema: z.object({ message: z.string() }) } },
-  },
-  403: {
-    description: "Forbidden — owner role required",
-    content: { "application/json": { schema: z.object({ message: z.string() }) } },
-  },
-};
 
 // ======================================================
 // ROUTE: GET ALL PRODUCTS

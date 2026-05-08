@@ -3,21 +3,11 @@ import { z } from "zod";
 import { cartRegistry, CartItemSchema, AddToCartBodySchema } from "./cart.schema";
 import { getCartHandler, addToCartHandler, removeFromCartHandler } from "./cart.controller";
 import { requireAuth, requireRole } from "../auth/auth.middleware";
+import { authErrorResponses } from "../../utils/openapi";
 
 const router = Router();
 
 const customerOnly = [requireAuth, requireRole("customer")];
-
-const authErrorResponses = {
-  401: {
-    description: "Not authenticated",
-    content: { "application/json": { schema: z.object({ message: z.string() }) } },
-  },
-  403: {
-    description: "Forbidden — customer role required",
-    content: { "application/json": { schema: z.object({ message: z.string() }) } },
-  },
-};
 
 // ======================================================
 // ROUTE: GET CART
