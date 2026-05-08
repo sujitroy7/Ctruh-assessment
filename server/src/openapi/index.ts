@@ -1,5 +1,5 @@
 import { OpenApiGeneratorV3, OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
-import { productsRegistry } from "../features/products";
+import { productsRegistry } from "../features/products/product.schema";
 
 const registries: OpenAPIRegistry[] = [productsRegistry];
 
