@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
 import { ownerRegistry, RegisterOwnerBodySchema } from "./owner.schema";
-import { TokenResponseSchema } from "../auth/auth.schema";
 import { registerOwnerHandler } from "./owner.controller";
 
 const router = Router();
@@ -23,8 +22,8 @@ ownerRegistry.registerPath({
   },
   responses: {
     201: {
-      description: "Owner registered and tokens issued",
-      content: { "application/json": { schema: TokenResponseSchema } },
+      description: "Owner registered successfully",
+      content: { "application/json": { schema: z.object({ message: z.string() }) } },
     },
     409: {
       description: "Owner already registered",

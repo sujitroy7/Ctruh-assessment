@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { RegisterOwnerBodySchema } from "./owner.schema";
 import { registerOwner } from "./owner.service";
-import { issueTokens } from "../auth/auth.service";
 
 export async function registerOwnerHandler(req: Request, res: Response, next: NextFunction) {
   try {
@@ -18,8 +17,7 @@ export async function registerOwnerHandler(req: Request, res: Response, next: Ne
       return;
     }
 
-    const tokens = await issueTokens(String(result.data._id), "owner");
-    res.status(201).json(tokens);
+    res.status(201).json({ message: "Owner registered successfully" });
   } catch (err) {
     next(err);
   }

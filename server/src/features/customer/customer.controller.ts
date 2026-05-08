@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { RegisterCustomerBodySchema, AddressBodySchema, UpdateAddressBodySchema } from "./customer.schema";
 import { registerCustomer, addAddress, listAddresses, updateAddress, deleteAddress } from "./customer.service";
-import { issueTokens } from "../auth/auth.service";
 
 export async function registerCustomerHandler(req: Request, res: Response, next: NextFunction) {
   try {
@@ -19,8 +18,7 @@ export async function registerCustomerHandler(req: Request, res: Response, next:
       return;
     }
 
-    const tokens = await issueTokens(String(result.data._id), "customer");
-    res.status(201).json(tokens);
+    res.status(201).json({ message: "Customer registered successfully" });
   } catch (err) {
     next(err);
   }

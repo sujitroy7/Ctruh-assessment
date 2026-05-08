@@ -7,7 +7,6 @@ import {
   UpdateAddressBodySchema,
   AddressZodSchema,
 } from "./customer.schema";
-import { TokenResponseSchema } from "../auth/auth.schema";
 import {
   registerCustomerHandler,
   addAddressHandler,
@@ -40,8 +39,8 @@ customersRegistry.registerPath({
   },
   responses: {
     201: {
-      description: "Customer registered and tokens issued",
-      content: { "application/json": { schema: TokenResponseSchema } },
+      description: "Customer registered successfully",
+      content: { "application/json": { schema: z.object({ message: z.string() }) } },
     },
     409: {
       description: "Email already in use",
