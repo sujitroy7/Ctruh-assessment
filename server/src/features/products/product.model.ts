@@ -1,12 +1,7 @@
 import { Schema, model, Document, Types } from "mongoose";
 
-export interface IProduct extends Document {
-  name: string;
-  is_deleted: boolean;
-}
-
-export interface IProductItem extends Document {
-  product_id: Types.ObjectId;
+export interface IProductItem {
+  _id: Types.ObjectId;
   gender: string;
   type: string;
   color: string;
@@ -15,19 +10,18 @@ export interface IProductItem extends Document {
   images: string[];
   is_deleted: boolean;
   idempotency_key?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const ProductSchema = new Schema<IProduct>(
-  {
-    name: { type: String, required: true, trim: true },
-    is_deleted: { type: Boolean, default: false },
-  },
-  { timestamps: true },
-);
+export interface IProduct extends Document {
+  name: string;
+  is_deleted: boolean;
+  items: IProductItem[];
+}
 
 const ProductItemSchema = new Schema<IProductItem>(
   {
-    product_id: { type: Schema.Types.ObjectId, ref: "Product", required: true, index: true },
     gender: { type: String, required: true, trim: true },
     type: { type: String, required: true, trim: true },
     color: { type: String, required: true, trim: true },
@@ -35,10 +29,21 @@ const ProductItemSchema = new Schema<IProductItem>(
     stock: { type: Number, required: true, min: 0, default: 0 },
     images: { type: [String], default: [] },
     is_deleted: { type: Boolean, default: false },
-    idempotency_key: { type: String, sparse: true, unique: true },
+    idempotency_key: { type: String },
   },
   { timestamps: true },
 );
 
+const ProductSchema = new Schema<IProduct>(
+  {
+    name: { type: String, required: true, trim: true },
+    is_deleted: { type: Boolean, default: false },
+    items: { type: [ProductItemSchema], default: [] },
+  },
+  { timestamps: true },
+);
+
+// Enforce uniqueness of idempotency_key across all embedded items
+ProductSchema.index({ "items.idempotency_key": 1 }, { unique: true, sparse: true });
+
 export const Product = model<IProduct>("Product", ProductSchema);
-export const ProductItem = model<IProductItem>("ProductItem", ProductItemSchema, "product_items");

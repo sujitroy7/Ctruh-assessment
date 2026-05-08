@@ -7,7 +7,6 @@ export const ProductItemSchema = productsRegistry.register(
   "ProductItem",
   z.object({
     id: z.string(),
-    product_id: z.string(),
     gender: z.string(),
     type: z.string(),
     color: z.string(),
