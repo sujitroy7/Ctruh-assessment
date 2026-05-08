@@ -16,7 +16,7 @@ authRegistry.registerPath({
   method: "post",
   path: "/auth/login",
   summary: "Login (owner or customer)",
-  description: "Sets `access_token` and `refresh_token` as HttpOnly SameSite=Strict cookies.",
+  description: "Defaults to `role: customer` if omitted. Sets tokens as HttpOnly cookies and returns them in the response body.",
   tags: ["Auth"],
   request: {
     body: {
@@ -26,7 +26,7 @@ authRegistry.registerPath({
   },
   responses: {
     200: {
-      description: "Logged in — tokens issued as cookies",
+      description: "Logged in — user info and tokens returned in body; tokens also set as cookies",
       content: { "application/json": { schema: TokenResponseSchema } },
     },
     401: {

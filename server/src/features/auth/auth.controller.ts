@@ -64,7 +64,15 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
     const { access_token, refresh_token } = await issueTokens(String(subject._id), role);
     setTokenCookies(res, access_token, refresh_token);
-    res.json({ message: "Logged in" });
+
+    const name = "f_name" in subject ? `${subject.f_name} ${subject.l_name}`.trim() : "";
+
+    res.json({
+      user: { id: String(subject._id), name, email: subject.email, role },
+      access_token,
+      refresh_token,
+      expires_in: ACCESS_TOKEN_TTL_MS / 1000,
+    });
   } catch (err) {
     next(err);
   }
