@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { RegisterCustomerBodySchema } from "./customer.schema";
-import { registerCustomer } from "./customer.service";
+import { RegisterCustomerBodySchema, AddressBodySchema, UpdateAddressBodySchema } from "./customer.schema";
+import { registerCustomer, addAddress, listAddresses, updateAddress, deleteAddress } from "./customer.service";
 import { issueTokens } from "../auth/auth.service";
 
 export async function registerCustomerHandler(req: Request, res: Response, next: NextFunction) {
@@ -21,6 +21,102 @@ export async function registerCustomerHandler(req: Request, res: Response, next:
 
     const tokens = await issueTokens(String(result.data._id), "customer");
     res.status(201).json(tokens);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function addAddressHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const parsed = AddressBodySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      return;
+    }
+
+    const result = await addAddress(req.user!.sub, parsed.data);
+
+    if (result.error === "invalid_id") {
+      res.status(400).json({ message: "Invalid customer ID" });
+      return;
+    }
+    if (result.error === "not_found") {
+      res.status(404).json({ message: "Customer not found" });
+      return;
+    }
+
+    res.status(201).json(result.data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function listAddressesHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await listAddresses(req.user!.sub);
+
+    if (result.error === "invalid_id") {
+      res.status(400).json({ message: "Invalid customer ID" });
+      return;
+    }
+    if (result.error === "not_found") {
+      res.status(404).json({ message: "Customer not found" });
+      return;
+    }
+
+    res.json(result.data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateAddressHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const parsed = UpdateAddressBodySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      return;
+    }
+
+    const result = await updateAddress(req.user!.sub, req.params.addressId, parsed.data);
+
+    if (result.error === "invalid_id") {
+      res.status(400).json({ message: "Invalid ID" });
+      return;
+    }
+    if (result.error === "not_found") {
+      res.status(404).json({ message: "Customer not found" });
+      return;
+    }
+    if (result.error === "address_not_found") {
+      res.status(404).json({ message: `Address '${req.params.addressId}' not found` });
+      return;
+    }
+
+    res.json(result.data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteAddressHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await deleteAddress(req.user!.sub, req.params.addressId);
+
+    if (result.error === "invalid_id") {
+      res.status(400).json({ message: "Invalid ID" });
+      return;
+    }
+    if (result.error === "not_found") {
+      res.status(404).json({ message: "Customer not found" });
+      return;
+    }
+    if (result.error === "address_not_found") {
+      res.status(404).json({ message: `Address '${req.params.addressId}' not found` });
+      return;
+    }
+
+    res.status(204).send();
   } catch (err) {
     next(err);
   }
