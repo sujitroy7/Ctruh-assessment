@@ -15,6 +15,7 @@ import authRouter from "./features/auth";
 import ownerRouter from "./features/owner";
 import customersRouter from "./features/customer";
 import cartRouter from "./features/cart";
+import orderRouter from "./features/order";
 import { generateOpenApiSpec } from "./openapi";
 import { env } from "./config/env";
 
@@ -46,6 +47,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/owner", ownerRouter);
 app.use("/api/customers", customersRouter);
 app.use("/api/cart", cartRouter);
+app.use("/api/orders", orderRouter);
 
 // Catch-all error handler — must have all four params for Express to treat it as an error handler.
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
