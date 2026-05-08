@@ -1,10 +1,25 @@
 import { OpenApiGeneratorV3, OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { productsRegistry } from "../features/products/product.schema";
+import { authRegistry } from "../features/auth/auth.schema";
+import { ownerRegistry } from "../features/owner/owner.schema";
+import { customersRegistry } from "../features/customer/customer.schema";
 
-const registries: OpenAPIRegistry[] = [productsRegistry];
+const registries: OpenAPIRegistry[] = [
+  productsRegistry,
+  authRegistry,
+  ownerRegistry,
+  customersRegistry,
+];
 
 export function generateOpenApiSpec() {
   const combinedRegistry = new OpenAPIRegistry(registries);
+
+  combinedRegistry.registerComponent("securitySchemes", "cookieAuth", {
+    type: "apiKey",
+    in: "cookie",
+    name: "access_token",
+  });
+
   const generator = new OpenApiGeneratorV3(combinedRegistry.definitions);
 
   return generator.generateDocument({

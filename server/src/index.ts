@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import swaggerUi from "swagger-ui-express";
 import { z } from "zod";
@@ -10,12 +11,16 @@ import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 extendZodWithOpenApi(z);
 
 import productsRouter from "./features/products";
+import authRouter from "./features/auth";
+import ownerRouter from "./features/owner";
+import customersRouter from "./features/customer";
 import { generateOpenApiSpec } from "./openapi";
 import { env } from "./config/env";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ credentials: true }));
+app.use(cookieParser());
 app.use(express.json());
 
 // Generate spec once at startup from all feature registries.
@@ -36,6 +41,9 @@ app.get("/health", (_req, res) => {
 
 // Feature routers — each feature owns its schemas, registry, and routes.
 app.use("/api/products", productsRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/owner", ownerRouter);
+app.use("/api/customers", customersRouter);
 
 // Catch-all error handler — must have all four params for Express to treat it as an error handler.
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
