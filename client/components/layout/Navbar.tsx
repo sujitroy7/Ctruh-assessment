@@ -3,6 +3,30 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
+import { ShoppingCart } from "lucide-react";
+import clsx from "clsx";
+
+function NavItem({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className={clsx(
+        "text-sm text-ink-soft hover:text-ink transition-colors",
+        className
+      )}
+    >
+      {children}
+    </Link>
+  );
+}
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -43,28 +67,31 @@ export default function Navbar() {
             <div className="flex items-center gap-3">
               {session.user.role === "customer" && (
                 <>
-                  <Link
-                    href="/my-orders"
-                    className="text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    My Orders
-                  </Link>
-                  <Link
-                    href="/profile"
-                    className="text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    Profile
-                  </Link>
+                  <NavItem href="/my-orders">My Orders</NavItem>
                 </>
               )}
 
               {session.user.role === "owner" && (
-                <Link
-                  href="/admin/dashboard"
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
-                  Dashboard
-                </Link>
+                <>
+                  <Link
+                    href="/admin/dashboard"
+                    className="text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/admin/orders"
+                    className="text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    Orders
+                  </Link>
+                  <Link
+                    href="/admin/products"
+                    className="text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    Products
+                  </Link>
+                </>
               )}
 
               {/* Avatar + name */}
@@ -144,6 +171,17 @@ export default function Navbar() {
                 Sign in
               </Link>
             </div>
+          )}
+
+          {/* Cart — visible to guests and customers, hidden for owners */}
+          {!loading && (!session || session.user.role === "customer") && (
+            <Link
+              href="/cart"
+              aria-label="Cart"
+              className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ShoppingCart className="w-5 h-5" />
+            </Link>
           )}
         </div>
       </div>
