@@ -76,8 +76,8 @@ export default function ProductCard({ id, name, items, badge, onAddToCart, class
         )}
 
         {colors.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {colors.map((color) => (
+          <div className="flex items-center gap-1.5">
+            {(colors.length > 5 ? colors.slice(0, 3) : colors).map((color) => (
               <span
                 key={color}
                 title={color}
@@ -85,6 +85,11 @@ export default function ProductCard({ id, name, items, badge, onAddToCart, class
                 style={{ backgroundColor: color }}
               />
             ))}
+            {colors.length > 5 && (
+              <span className="text-xs text-ink-muted font-medium">
+                +{colors.length - 3} more
+              </span>
+            )}
           </div>
         )}
 
