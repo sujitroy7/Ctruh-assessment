@@ -24,7 +24,7 @@ export default function RootLayout({
           <body className={geist.className}>
             <div className="grid grid-rows-[64px_1fr] min-h-svh">
               <Navbar />
-              <main className="max-w-6xl mx-auto w-full">{children}</main>
+              <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8">{children}</main>
             </div>
           </body>
         </NuqsAdapter>

@@ -3,38 +3,35 @@
 import Image from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
-import { Star } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
+
+interface ProductItem {
+  id: string;
+  gender: string;
+  type: string;
+  color: string;
+  price: number;
+  stock: number;
+  images: string[];
+  is_deleted: boolean;
+}
 
 interface ProductCardProps {
   id: string;
-  image: string;
   name: string;
-  price: number;
-  originalPrice: number;
-  bestPrice?: number;
+  items: ProductItem[];
   badge?: string;
-  rating?: number;
-  reviewCount?: number;
-  colorCount?: number;
   onAddToCart?: () => void;
   className?: string;
 }
 
-export default function ProductCard({
-  id,
-  image,
-  name,
-  price,
-  originalPrice,
-  bestPrice,
-  badge,
-  rating,
-  reviewCount,
-  colorCount,
-  onAddToCart,
-  className,
-}: ProductCardProps) {
-  const discountPercent = Math.round(((originalPrice - price) / originalPrice) * 100);
+export default function ProductCard({ id, name, items, badge, onAddToCart, className }: ProductCardProps) {
+  const activeItems = items.filter((item) => !item.is_deleted);
+
+  const image = activeItems.find((item) => item.images.length > 0)?.images[0] ?? "";
+  const colors = [...new Set(activeItems.map((item) => item.color.toLowerCase()))];
+  const genders = [...new Set(activeItems.map((item) => item.gender.toLowerCase()))];
+  const minPrice = activeItems.length > 0 ? Math.min(...activeItems.map((item) => item.price)) : null;
 
   return (
     <div
@@ -43,93 +40,67 @@ export default function ProductCard({
         className,
       )}
     >
-      {/* Image + overlays */}
       <Link href={`/products/${id}`} className="relative block">
-        <div className="relative w-full aspect-[3/4]">
-          <Image
-            src={image}
-            alt={name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          />
-        </div>
-
-        {/* Badge — top-left */}
-        {badge && (
-          <div className="absolute top-3 left-3 px-3 py-1 bg-surface rounded-lg shadow-sm">
-            <span className="text-xs font-bold text-success-600 tracking-wide uppercase">
+        <div className="relative w-full aspect-[3/4] bg-neutral-100">
+          {image && (
+            <Image
+              src={image}
+              alt={name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 50vw, 33vw"
+            />
+          )}
+          {badge && (
+            <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-error-600 text-ink-inverse text-xs font-bold shadow-sm">
               {badge}
             </span>
-          </div>
-        )}
-
-        {/* Bottom row overlays */}
-        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-          {/* Rating + review count */}
-          {(rating != null || reviewCount != null) && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/50 backdrop-blur-sm">
-              <Star className="w-3.5 h-3.5 fill-warning-400 text-warning-400 shrink-0" />
-              {rating != null && (
-                <span className="text-xs font-medium text-ink-inverse">{rating}</span>
-              )}
-              {reviewCount != null && (
-                <>
-                  <span className="text-xs text-ink-disabled">|</span>
-                  <span className="text-xs font-medium text-ink-inverse">{reviewCount}</span>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Color count */}
-          {colorCount != null && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/50 backdrop-blur-sm ml-auto">
-              <div className="flex w-5 h-3 rounded-full overflow-hidden shrink-0">
-                <div className="w-1/2 bg-warning-300" />
-                <div className="w-1/2 bg-primary-500" />
-              </div>
-              <span className="text-xs font-medium text-ink-inverse">{colorCount}</span>
-            </div>
           )}
         </div>
       </Link>
 
-      {/* Card body */}
-      <div className="flex flex-col gap-1.5 px-3 pt-3 pb-2">
-        {/* Price row */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-base font-bold text-ink">₹{price.toLocaleString("en-IN")}</span>
-          <span className="text-sm text-ink-muted line-through">
-            ₹{originalPrice.toLocaleString("en-IN")}
-          </span>
-          <span className="text-sm font-semibold text-success-600">{discountPercent}% OFF</span>
-        </div>
+      <div className="flex flex-col gap-1.5 sm:gap-2 px-2 sm:px-3 pt-2 sm:pt-3 pb-2 sm:pb-3">
+        <p className="text-xs sm:text-sm font-bold text-ink leading-snug line-clamp-2">{name}</p>
 
-        {/* Best price */}
-        {bestPrice != null && (
-          <div className="flex items-center gap-1.5">
-            <span className="flex items-center justify-center w-4 h-4 rounded-full bg-success-600 text-ink-inverse text-[9px] font-bold shrink-0">
-              %
-            </span>
-            <span className="text-sm font-semibold text-success-600">
-              Best price ₹{bestPrice.toLocaleString("en-IN")}
-            </span>
+        {genders.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {genders.map((g) => (
+              <span
+                key={g}
+                className="px-2 py-0.5 rounded text-xs text-ink-muted bg-neutral-100 capitalize"
+              >
+                {g}
+              </span>
+            ))}
           </div>
         )}
 
-        {/* Product name */}
-        <p className="text-sm text-ink-muted truncate">{name}</p>
+        {colors.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {colors.map((color) => (
+              <span
+                key={color}
+                title={color}
+                className="w-5 h-5 rounded-full border border-border shrink-0"
+                style={{ backgroundColor: color }}
+              />
+            ))}
+          </div>
+        )}
+
+        {minPrice !== null && (
+          <span className="text-sm sm:text-base font-bold text-ink">${minPrice.toFixed(2)}</span>
+        )}
       </div>
 
-      {/* Add to cart */}
-      <div className="mt-auto border-t border-border">
+      <div className="mt-auto px-2 sm:px-3 pb-2 sm:pb-3">
         <button
           type="button"
           onClick={onAddToCart}
-          className="w-full py-3 text-sm font-bold text-ink text-center hover:bg-neutral-50 active:bg-neutral-100 transition-colors"
+          className="w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 rounded-lg bg-ink text-ink-inverse text-xs sm:text-sm font-semibold hover:bg-ink/90 active:scale-[0.98] transition-all"
         >
-          ADD TO CART
+          <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          Add to Cart
         </button>
       </div>
     </div>
