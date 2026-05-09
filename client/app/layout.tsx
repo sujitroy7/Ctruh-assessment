@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/auth/SessionProvider";
 import Navbar from "@/components/layout/Navbar";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -19,12 +20,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <SessionProvider>
-        <body className={geist.className}>
-          <div className="grid grid-rows-[64px_1fr] min-h-svh">
-            <Navbar />
-            <main className="max-w-6xl mx-auto w-full">{children}</main>
-          </div>
-        </body>
+        <NuqsAdapter>
+          <body className={geist.className}>
+            <div className="grid grid-rows-[64px_1fr] min-h-svh">
+              <Navbar />
+              <main className="max-w-6xl mx-auto w-full">{children}</main>
+            </div>
+          </body>
+        </NuqsAdapter>
       </SessionProvider>
     </html>
   );
