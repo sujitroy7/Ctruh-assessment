@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactNode } from "react";
+import { ButtonHTMLAttributes, ReactNode, cloneElement, isValidElement } from "react";
 import clsx from "clsx";
 import { Loader2 } from "lucide-react";
 
@@ -96,13 +96,15 @@ export default function Button({
         </>
       ) : (
         <>
-          {leftIcon && (
-            <span className={clsx("shrink-0", iconSize)}>{leftIcon}</span>
-          )}
+          {leftIcon && isValidElement(leftIcon) &&
+            cloneElement(leftIcon as React.ReactElement<{ className?: string }>, {
+              className: clsx("shrink-0", iconSize, (leftIcon.props as { className?: string }).className),
+            })}
           {children}
-          {rightIcon && (
-            <span className={clsx("shrink-0", iconSize)}>{rightIcon}</span>
-          )}
+          {rightIcon && isValidElement(rightIcon) &&
+            cloneElement(rightIcon as React.ReactElement<{ className?: string }>, {
+              className: clsx("shrink-0", iconSize, (rightIcon.props as { className?: string }).className),
+            })}
         </>
       )}
     </button>
