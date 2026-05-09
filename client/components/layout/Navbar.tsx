@@ -20,7 +20,7 @@ function NavItem({
       href={href}
       className={clsx(
         "text-sm text-ink-soft hover:text-ink transition-colors",
-        className
+        className,
       )}
     >
       {children}
@@ -38,24 +38,8 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="text-lg font-bold text-gray-900">
-          MyShop
+          TShirt.com
         </Link>
-
-        {/* Center links */}
-        <div className="hidden md:flex items-center gap-6">
-          <Link
-            href="/"
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            Home
-          </Link>
-          <Link
-            href="/search"
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            Search
-          </Link>
-        </div>
 
         {/* Right side */}
         <div className="flex items-center gap-3">
@@ -73,12 +57,6 @@ export default function Navbar() {
 
               {session.user.role === "owner" && (
                 <>
-                  <Link
-                    href="/admin/dashboard"
-                    className="text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    Dashboard
-                  </Link>
                   <Link
                     href="/admin/orders"
                     className="text-sm text-gray-600 hover:text-gray-900"
