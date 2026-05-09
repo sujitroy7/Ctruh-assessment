@@ -4,8 +4,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
+import { XCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 
 interface FormErrors {
   email?: string;
@@ -17,13 +16,12 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // If admin was trying to reach a specific admin page, go back there
   const callbackUrl = searchParams.get("callbackUrl") || "/admin/dashboard";
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
 
-  // ── Validation ──────────────────────────────────────────────────────────
   function validate(email: string, password: string): FormErrors {
     const errs: FormErrors = {};
     if (!email) errs.email = "Email is required";
@@ -33,7 +31,6 @@ export default function AdminLoginPage() {
     return errs;
   }
 
-  // ── Submit ──────────────────────────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErrors({});
@@ -54,7 +51,7 @@ export default function AdminLoginPage() {
       const result = await signIn("credentials", {
         email,
         password,
-        role: "owner", // 👈 silently sent — user never sees this
+        role: "owner",
         redirect: false,
       });
 
@@ -65,15 +62,10 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Extra safety check — verify backend actually returned owner role.
-      // getSession() triggers jwt() → session() callbacks and returns
-      // the fresh session with role populated.
       const { getSession } = await import("next-auth/react");
       const session = await getSession();
 
       if (session?.user?.role !== "owner") {
-        // Backend returned a non-owner role despite us requesting owner.
-        // Sign them out immediately and show an error.
         const { signOut } = await import("next-auth/react");
         await signOut({ redirect: false });
         setErrors({
@@ -90,132 +82,131 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="bg-gray-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Card — dark theme to visually distinguish from customer login */}
-        <div className="bg-gray-800 rounded-2xl shadow-xl border border-gray-700 p-8">
-          {/* Header */}
-          <div className="mb-8 text-center">
-            {/* Admin badge */}
-            <span
-              className="inline-block px-3 py-1 rounded-full text-xs font-semibold
-                             bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 mb-4"
-            >
-              Admin Portal
-            </span>
-            <h1 className="text-2xl font-bold text-white">Sign in as Admin</h1>
-            <p className="text-sm text-gray-400 mt-1">
-              Restricted to authorized personnel only
+    <div className="min-h-full bg-gray-50 flex">
+      <div className="flex-1 flex  justify-center px-6 py-12 mt-10">
+        <div className="w-full max-w-sm">
+          {/* Heading */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-900">Admin sign in</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Restricted to authorized personnel only.
             </p>
           </div>
 
-          {/* General error banner */}
+          {/* Error banner */}
           {errors.general && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-sm text-red-400">{errors.general}</p>
+            <div className="mb-5 flex items-start gap-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200">
+              <XCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+              <p className="text-sm text-red-600">{errors.general}</p>
             </div>
           )}
 
           {/* Form */}
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-4"
-            noValidate
-          >
-            <div className="flex flex-col gap-1 w-full">
-              <label className="text-sm font-medium text-gray-300">Email</label>
-              <input
-                name="email"
-                type="email"
-                placeholder="admin@example.com"
-                autoComplete="email"
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors
-                           bg-gray-700 border border-gray-600 text-white
-                           placeholder:text-gray-500
-                           focus:border-yellow-400
-                           aria-[invalid]:border-red-400"
-                aria-invalid={!!errors.email}
-              />
-              {errors.email && (
-                <p className="text-xs text-red-400">{errors.email}</p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1 w-full">
-              <label className="text-sm font-medium text-gray-300">
-                Password
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            {/* Email */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Email address
               </label>
               <input
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors
-                           bg-gray-700 border border-gray-600 text-white
-                           placeholder:text-gray-500
-                           focus:border-yellow-400
-                           aria-[invalid]:border-red-400"
-                aria-invalid={!!errors.password}
+                id="email"
+                name="email"
+                type="email"
+                placeholder="admin@yourstore.com"
+                defaultValue="admin@ctruh.com"
+                autoComplete="off"
+                aria-invalid={!!errors.email}
+                className={`w-full px-3.5 py-2.5 rounded-lg text-sm border outline-none transition-colors bg-white text-gray-900 placeholder:text-gray-400
+                  ${
+                    errors.email
+                      ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                      : "border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                  }`}
               />
-              {errors.password && (
-                <p className="text-xs text-red-400">{errors.password}</p>
+              {errors.email && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>
               )}
             </div>
 
+            {/* Password */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  defaultValue="Admin@1234"
+                  autoComplete="off"
+                  aria-invalid={!!errors.password}
+                  className={`w-full px-3.5 py-2.5 pr-10 rounded-lg text-sm border outline-none transition-colors bg-white text-gray-900 placeholder:text-gray-400
+                    ${
+                      errors.password
+                        ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                        : "border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.password}</p>
+              )}
+            </div>
+
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 px-4 py-2 rounded-lg text-sm font-medium
-                         transition-all duration-150
-                         bg-yellow-400 text-gray-900
-                         hover:bg-yellow-300 active:bg-yellow-500
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-150
+                         bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800
+                         disabled:opacity-60 disabled:cursor-not-allowed
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg
-                    className="animate-spin h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"
-                    />
-                  </svg>
-                  Verifying...
+                  <Loader2 className="animate-spin h-4 w-4" />
+                  Signing in…
                 </span>
               ) : (
-                "Sign in"
+                "Sign in to dashboard"
               )}
             </button>
           </form>
 
-          {/* Footer */}
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Not an admin?{" "}
-            <Link
-              href="/login"
-              className="text-yellow-400 hover:underline font-medium"
-            >
-              Customer login
-            </Link>
-          </p>
+          {/* Divider + footer link */}
+          <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+            <p className="text-sm text-gray-500">
+              Not an admin?{" "}
+              <Link
+                href="/login"
+                className="text-indigo-600 font-medium hover:underline"
+              >
+                Go to customer login
+              </Link>
+            </p>
+          </div>
         </div>
-
-        {/* Bottom note */}
-        <p className="text-center text-xs text-gray-600 mt-4">
-          Unauthorized access attempts are logged.
-        </p>
       </div>
     </div>
   );
