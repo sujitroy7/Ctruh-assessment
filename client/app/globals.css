@@ -1,26 +1,215 @@
 @import "tailwindcss";
 
-/* :root {
-  --background: #ffffff;
-  --foreground: #171717;
-} */
-
 @theme inline {
-  /* --color-background: var(--background);
-  --color-foreground: var(--foreground); */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* ─────────────────────────────────────────────
+     FONTS
+  ───────────────────────────────────────────── */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "Courier New", monospace;
+
+
+  /* ─────────────────────────────────────────────
+     PRIMARY — Indigo
+     Usage: brand buttons, links, focus rings,
+            active states, interactive highlights
+  ───────────────────────────────────────────── */
+  --color-primary-50:  #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+  --color-primary-950: #1e1b4b;
+
+
+  /* ─────────────────────────────────────────────
+     SECONDARY — Slate
+     Usage: secondary actions, supporting UI,
+            data table headers, less prominent CTAs
+  ───────────────────────────────────────────── */
+  --color-secondary-50:  #f8fafc;
+  --color-secondary-100: #f1f5f9;
+  --color-secondary-200: #e2e8f0;
+  --color-secondary-300: #cbd5e1;
+  --color-secondary-400: #94a3b8;
+  --color-secondary-500: #64748b;
+  --color-secondary-600: #475569;
+  --color-secondary-700: #334155;
+  --color-secondary-800: #1e293b;
+  --color-secondary-900: #0f172a;
+  --color-secondary-950: #020617;
+
+
+  /* ─────────────────────────────────────────────
+     NEUTRAL — Gray
+     Usage: text, backgrounds, borders, icons,
+            dividers, disabled states
+  ───────────────────────────────────────────── */
+  --color-neutral-50:  #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1f2937;
+  --color-neutral-900: #111827;
+  --color-neutral-950: #030712;
+
+
+  /* ─────────────────────────────────────────────
+     SUCCESS — Green
+     Usage: order confirmations, in-stock badges,
+            success toasts, positive indicators
+  ───────────────────────────────────────────── */
+  --color-success-50:  #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+
+
+  /* ─────────────────────────────────────────────
+     WARNING — Amber
+     Usage: low-stock alerts, pending order status,
+            caution banners
+  ───────────────────────────────────────────── */
+  --color-warning-50:  #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+
+
+  /* ─────────────────────────────────────────────
+     ERROR — Red
+     Usage: form validation, payment failures,
+            destructive action buttons, error toasts
+  ───────────────────────────────────────────── */
+  --color-error-50:  #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+
+
+  /* ─────────────────────────────────────────────
+     SEMANTIC — Surface / Canvas
+     Usage: page and component backgrounds.
+     canvas  = outermost page background
+     surface = cards, modals, inputs, sidebars
+  ───────────────────────────────────────────── */
+  --color-canvas:          #f9fafb;
+  --color-surface:         #ffffff;
+  --color-surface-overlay: rgb(0 0 0 / 0.5);
+
+
+  /* ─────────────────────────────────────────────
+     SEMANTIC — Ink (Text)
+     Usage: foreground text at different emphasis
+     levels. Never hardcode gray-* for text —
+     use ink tokens instead.
+  ───────────────────────────────────────────── */
+  --color-ink:          #111827;   /* headings, prices, primary labels   */
+  --color-ink-soft:     #374151;   /* body text, secondary labels        */
+  --color-ink-muted:    #6b7280;   /* hints, placeholders, captions      */
+  --color-ink-disabled: #9ca3af;   /* disabled inputs, unavailable text  */
+  --color-ink-inverse:  #ffffff;   /* text on dark/filled backgrounds    */
+
+
+  /* ─────────────────────────────────────────────
+     SEMANTIC — Border
+     Usage: outlines and dividers.
+     Never hardcode border-gray-* — use these.
+  ───────────────────────────────────────────── */
+  --color-border:        #e5e7eb;   /* default input/card border          */
+  --color-border-strong: #d1d5db;   /* emphasized dividers                */
+  --color-border-focus:  #4f46e5;   /* focus ring color (= primary-600)   */
+
+
+  /* ─────────────────────────────────────────────
+     BORDER RADIUS
+     sm   → tags, badges, tooltips
+     md   → buttons, inputs, dropdowns
+     lg   → cards, panels, popovers
+     xl   → modals, sheets, bottom drawers
+     full → pills, avatar circles
+  ───────────────────────────────────────────── */
+  --radius-sm:   0.25rem;   /*  4px */
+  --radius-md:   0.5rem;    /*  8px */
+  --radius-lg:   0.75rem;   /* 12px */
+  --radius-xl:   1rem;      /* 16px */
+  --radius-full: 9999px;
+
+
+  /* ─────────────────────────────────────────────
+     SHADOWS — Elevation System
+     sm       → subtle lift (input default state)
+     md       → card hover, floating elements
+     lg       → dropdowns, popovers, tooltips
+     modal    → dialogs, sheets
+
+     Semantic aliases map to the levels above,
+     but communicate intent rather than size.
+  ───────────────────────────────────────────── */
+  --shadow-sm:    0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md:    0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* semantic aliases */
+  --shadow-card:     0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-dropdown: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-modal:    0 20px 25px -5px rgb(0 0 0 / 0.15), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+
+  /* ─────────────────────────────────────────────
+     Z-INDEX LAYERS
+     Layer order (lowest → highest):
+       base → raised → dropdown → sticky
+       → overlay → modal → tooltip → toast
+
+     Always use these — never hardcode z-* numbers.
+  ───────────────────────────────────────────── */
+  --z-base:     0;
+  --z-raised:   10;
+  --z-dropdown: 1000;
+  --z-sticky:   1100;
+  --z-overlay:  1200;
+  --z-modal:    1300;
+  --z-tooltip:  1400;
+  --z-toast:    1500;
+
 }
 
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
 
+/* ─────────────────────────────────────────────
+   BASE STYLES
+───────────────────────────────────────────── */
 body {
-  /* background: var(--background); */
-  /* color: var(--foreground); */
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
