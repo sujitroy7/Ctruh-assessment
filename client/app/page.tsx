@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryStates, parseAsString, parseAsFloat } from "nuqs";
 import Input from "@/components/ui/Input";
 import ProductCard from "@/components/products/ProductCard";
 import FilterPanel, { FilterValues } from "@/components/products/FilterPanel";
@@ -269,9 +270,28 @@ const defaultFilters: FilterValues = {
 };
 
 export default function SearchPage() {
-  const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<FilterValues>(defaultFilters);
+  const [{ q, gender, color, type, priceMin, priceMax }, setParams] =
+    useQueryStates({
+      q: parseAsString.withDefault(""),
+      gender: parseAsString.withDefault(""),
+      color: parseAsString.withDefault(""),
+      type: parseAsString.withDefault(""),
+      priceMin: parseAsFloat.withDefault(absoluteMin),
+      priceMax: parseAsFloat.withDefault(absoluteMax),
+    });
+
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  const filters: FilterValues = { gender, color, type, priceMin, priceMax };
+
+  const setFilters = (next: FilterValues) =>
+    setParams({
+      gender: next.gender,
+      color: next.color,
+      type: next.type,
+      priceMin: next.priceMin,
+      priceMax: next.priceMax,
+    });
 
   const activeFilterCount = [
     filters.gender,
@@ -283,8 +303,7 @@ export default function SearchPage() {
   ].filter(Boolean).length;
 
   const filtered = allProducts.filter((p) => {
-    if (query && !p.name.toLowerCase().includes(query.toLowerCase()))
-      return false;
+    if (q && !p.name.toLowerCase().includes(q.toLowerCase())) return false;
     const activeItems = p.items.filter((i) => !i.is_deleted);
     return activeItems.some((item) => {
       if (filters.gender && item.gender !== filters.gender) return false;
@@ -303,8 +322,8 @@ export default function SearchPage() {
         <Input
           type="text"
           placeholder="Search by name..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={q}
+          onChange={(e) => setParams({ q: e.target.value })}
           leftIcon={<Search className="w-4 h-4" />}
           size="lg"
         />
@@ -354,7 +373,7 @@ export default function SearchPage() {
         <div className="flex-1 min-w-0 flex flex-col gap-4">
           <p className="hidden md:block text-sm text-ink-muted">
             {filtered.length} product{filtered.length !== 1 ? "s" : ""} found
-            {query && ` for "${query}"`}
+            {q && ` for "${q}"`}
           </p>
 
           {filtered.length > 0 ? (
