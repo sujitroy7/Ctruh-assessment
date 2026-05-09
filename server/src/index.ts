@@ -18,6 +18,7 @@ import cartRouter from "./features/cart";
 import orderRouter from "./features/order";
 import { generateOpenApiSpec } from "./openapi";
 import { env } from "./config/env";
+import { apiLimiter, authLimiter } from "./middleware/rateLimiter";
 
 const app = express();
 
@@ -40,6 +41,10 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
+
+// Rate limiting — applied before feature routers.
+app.use("/api/auth", authLimiter);  // strict: 10 req burst, ~10 req/min
+app.use("/api", apiLimiter);        // general: 60 req burst, 60 req/min
 
 // Feature routers — each feature owns its schemas, registry, and routes.
 app.use("/api/products", productsRouter);
