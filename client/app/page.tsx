@@ -5,7 +5,8 @@ import { useQueryStates, parseAsString, parseAsFloat } from "nuqs";
 import Input from "@/components/ui/Input";
 import ProductCard from "@/components/products/ProductCard";
 import FilterPanel, { FilterValues } from "@/components/products/FilterPanel";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { PackageSearch, Search, SlidersHorizontal } from "lucide-react";
+import Button from "@/components/ui/Button";
 import clsx from "clsx";
 
 const allProducts = [
@@ -383,9 +384,50 @@ export default function SearchPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 text-ink-muted">
-              <p className="text-4xl mb-3">🔍</p>
-              <p className="text-sm">No products match the selected filters</p>
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary-50">
+                <PackageSearch className="w-8 h-8 text-primary-500" />
+              </div>
+              <div className="text-center">
+                <p className="text-base font-semibold text-ink">
+                  {q ? `No results for "${q}"` : "No products match"}
+                </p>
+                <p className="text-sm text-ink-muted mt-1 max-w-xs">
+                  {activeFilterCount > 0
+                    ? "Try adjusting your filters or clearing them to see more products."
+                    : "Try a different search term."}
+                </p>
+              </div>
+              {(activeFilterCount > 0 || q) && (
+                <div className="flex items-center gap-2">
+                  {activeFilterCount > 0 && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        setFilters({
+                          gender: "",
+                          color: "",
+                          type: "",
+                          priceMin: absoluteMin,
+                          priceMax: absoluteMax,
+                        })
+                      }
+                    >
+                      Clear filters
+                    </Button>
+                  )}
+                  {q && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setParams({ q: "" })}
+                    >
+                      Clear search
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
