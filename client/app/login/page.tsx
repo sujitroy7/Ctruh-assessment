@@ -4,7 +4,9 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { XCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import { XCircle } from "lucide-react";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 interface FormErrors {
   email?: string;
@@ -20,7 +22,6 @@ export default function CustomerLoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [showPassword, setShowPassword] = useState(false);
 
   function validate(email: string, password: string): FormErrors {
     const errs: FormErrors = {};
@@ -88,95 +89,37 @@ export default function CustomerLoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            {/* Email */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
-              >
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                defaultValue="bob@example.com"
-                autoComplete="off"
-                aria-invalid={!!errors.email}
-                className={`w-full px-3.5 py-2.5 rounded-lg text-sm border outline-none transition-colors bg-white text-gray-900 placeholder:text-gray-400
-                  ${
-                    errors.email
-                      ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                      : "border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                  }`}
-              />
-              {errors.email && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>
-              )}
-            </div>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              label="Email address"
+              placeholder="you@example.com"
+              defaultValue="bob@example.com"
+              autoComplete="off"
+              error={errors.email}
+            />
 
-            {/* Password */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  defaultValue="Bob@1234"
-                  autoComplete="off"
-                  aria-invalid={!!errors.password}
-                  className={`w-full px-3.5 py-2.5 pr-10 rounded-lg text-sm border outline-none transition-colors bg-white text-gray-900 placeholder:text-gray-400
-                    ${
-                      errors.password
-                        ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                        : "border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                    }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  tabIndex={-1}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.password}</p>
-              )}
-            </div>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              label="Password"
+              placeholder="••••••••"
+              defaultValue="Bob@1234"
+              autoComplete="off"
+              error={errors.password}
+            />
 
-            {/* Submit */}
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className="w-full mt-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-150
-                         bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800
-                         disabled:opacity-60 disabled:cursor-not-allowed
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              loading={loading}
+              loadingText="Signing in…"
+              fullWidth
+              className="mt-1"
             >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="animate-spin h-4 w-4" />
-                  Signing in…
-                </span>
-              ) : (
-                "Sign in"
-              )}
-            </button>
+              Sign in
+            </Button>
           </form>
 
           {/* Divider + footer links */}

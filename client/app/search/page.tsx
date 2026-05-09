@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Input from "@/components/ui/Input";
+import { Search } from "lucide-react";
 
 // Dummy data — replace with real API call using query param
 const allProducts = [
@@ -29,14 +31,13 @@ export default function SearchPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           Search Products
         </h1>
-        <input
+        <Input
           type="text"
           placeholder="Search by name or category..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-gray-300
-                     focus:outline-none focus:border-blue-500
-                     text-sm bg-white"
+          leftIcon={<Search className="w-4 h-4" />}
+          size="lg"
         />
       </div>
 
