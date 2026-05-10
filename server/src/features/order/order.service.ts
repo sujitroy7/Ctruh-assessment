@@ -34,7 +34,7 @@ export async function createOrder(customerId: string, body: { idempotency_key: s
       product_item_id: cartItem.product_item_id,
       product_name: product.name,
       gender: item.gender,
-      type: item.type,
+      type: product.type,
       color: item.color,
       unit_price: item.price,
       item_qty: cartItem.item_qty,

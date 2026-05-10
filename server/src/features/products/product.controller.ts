@@ -14,7 +14,12 @@ import {
   UpdateProductBodySchema,
   CreateProductItemBodySchema,
   UpdateProductItemBodySchema,
+  PRODUCT_TYPES,
 } from "./product.schema";
+
+export function listProductTypes(_req: Request, res: Response) {
+  res.json(PRODUCT_TYPES);
+}
 
 export async function listProducts(req: Request, res: Response, next: NextFunction) {
   try {
@@ -68,7 +73,7 @@ export async function createProductHandler(req: Request, res: Response, next: Ne
     }
 
     const result = await createProduct(parsed.data);
-    res.status(201).json(result.data);
+    res.status(result.created ? 201 : 200).json(result.data);
   } catch (err) {
     next(err);
   }

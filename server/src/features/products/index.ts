@@ -7,11 +7,13 @@ import {
   ProductListSchema,
   ProductSchema,
   ProductItemSchema,
+  ProductTypeSchema,
   UpdateProductBodySchema,
   UpdateProductItemBodySchema,
   productsRegistry,
 } from "./product.schema";
 import {
+  listProductTypes,
   listProducts,
   getProduct,
   createProductHandler,
@@ -27,6 +29,24 @@ import { authErrorResponses } from "../../utils/openapi";
 const router = Router();
 
 const ownerOnly = [requireAuth, requireRole("owner")];
+
+// ======================================================
+// ROUTE: GET PRODUCT TYPES
+// ======================================================
+productsRegistry.registerPath({
+  method: "get",
+  path: "/products/types",
+  summary: "Get all product types",
+  description: "Returns the static list of supported product types.",
+  tags: ["Products"],
+  responses: {
+    200: {
+      description: "List of product types",
+      content: { "application/json": { schema: z.array(ProductTypeSchema) } },
+    },
+  },
+});
+router.get("/types", listProductTypes);
 
 // ======================================================
 // ROUTE: GET ALL PRODUCTS
@@ -90,6 +110,10 @@ productsRegistry.registerPath({
       description: "Product created",
       content: { "application/json": { schema: ProductSchema } },
     },
+    200: {
+      description: "Duplicate idempotency_key — existing product returned",
+      content: { "application/json": { schema: ProductSchema } },
+    },
     422: {
       description: "Validation failed",
       content: { "application/json": { schema: z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) }) } },
@@ -106,7 +130,7 @@ productsRegistry.registerPath({
   method: "patch",
   path: "/products/{id}",
   summary: "Update a product",
-  description: "Updates the product name. To manage variants use the /items sub-routes.",
+  description: "Updates product metadata and optionally manages its variants inline (create / update / remove). To manage variants individually use the /items sub-routes.",
   tags: ["Products"],
   security: [{ cookieAuth: [] }],
   request: {
