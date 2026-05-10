@@ -1,32 +1,13 @@
-import NextAuth, { DefaultSession } from "next-auth";
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import "next-auth";
+import "next-auth/jwt";
+import { Session as TSession, User as TUser, JWT as TJwt } from "@/types/auth";
 
 declare module "next-auth" {
-  interface Session {
-    accessToken?: string;
-    accessTokenExpires?: number;
-    error?: string;
-    user: {
-      id: string;
-      role: "owner" | "customer";
-    } & DefaultSession["user"];
-  }
-
-  interface User {
-    id: string;
-    role: "owner" | "customer";
-    accessToken: string;
-    refreshToken: string;
-    accessTokenExpires: number;
-  }
+  interface Session extends TSession {}
+  interface User extends TUser {}
 }
 
 declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    role: "owner" | "customer";
-    accessToken: string;
-    refreshToken: string;
-    accessTokenExpires: number;
-    error?: string;
-  }
+  interface JWT extends TJwt {}
 }
