@@ -126,7 +126,10 @@ export default function CustomerLoginPage() {
           <div className="mt-6 pt-6 border-t border-gray-200 space-y-2 text-center">
             <p className="text-sm text-gray-500">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-indigo-600 font-medium hover:underline">
+              <Link
+                href="/register"
+                className="text-indigo-600 font-medium hover:underline"
+              >
                 Create one
               </Link>
             </p>
