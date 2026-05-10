@@ -5,6 +5,7 @@ import { ownerRegistry } from "../features/owner/owner.schema";
 import { customersRegistry } from "../features/customer/customer.schema";
 import { cartRegistry } from "../features/cart/cart.schema";
 import { orderRegistry } from "../features/order/order.schema";
+import { uploadRegistry } from "../features/upload/upload.schema";
 
 const registries: OpenAPIRegistry[] = [
   productsRegistry,
@@ -13,6 +14,7 @@ const registries: OpenAPIRegistry[] = [
   customersRegistry,
   cartRegistry,
   orderRegistry,
+  uploadRegistry,
 ];
 
 export function generateOpenApiSpec() {
