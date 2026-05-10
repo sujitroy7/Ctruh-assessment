@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const axiosInstance = axios.create({
+const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
   adapter: "fetch",
@@ -10,4 +10,4 @@ const axiosInstance = axios.create({
   timeout: 15000,
 });
 
-export default axiosInstance;
+export default api;
