@@ -18,15 +18,19 @@ import {
   updatePaymentStatusHandler,
 } from "./order.controller";
 import { requireAuth, requireRole } from "../auth/auth.middleware";
-import { authErrorResponses } from "../../utils/openapi";
+import {
+  jsonContent,
+  jsonBody,
+  apiSuccessSchema,
+  apiErrorSchema,
+  apiValidationErrorSchema,
+  authErrorResponses,
+} from "../../utils/openapi";
 
 const router = Router();
 
 const customerOnly = [requireAuth, requireRole("customer")];
 const ownerOnly = [requireAuth, requireRole("owner")];
-
-const errorSchema = z.object({ message: z.string() });
-const validationErrorSchema = z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) });
 
 // ======================================================
 // ROUTE: CREATE ORDER
@@ -39,17 +43,11 @@ orderRegistry.registerPath({
   tags: ["Orders"],
   security: [{ cookieAuth: [] }],
   request: {
-    body: { content: { "application/json": { schema: CreateOrderBodySchema } }, required: true },
+    body: jsonBody(CreateOrderBodySchema),
   },
   responses: {
-    201: {
-      description: "Order created",
-      content: { "application/json": { schema: OrderZodSchema } },
-    },
-    422: {
-      description: "Cart is empty / product unavailable / no shipping address",
-      content: { "application/json": { schema: errorSchema } },
-    },
+    201: jsonContent(apiSuccessSchema(OrderZodSchema), "Order created"),
+    422: jsonContent(apiErrorSchema, "Cart is empty / product unavailable / no shipping address"),
     ...authErrorResponses,
   },
 });
@@ -67,10 +65,7 @@ orderRegistry.registerPath({
   security: [{ cookieAuth: [] }],
   request: { params: OrderListQuerySchema },
   responses: {
-    200: {
-      description: "Paginated order list",
-      content: { "application/json": { schema: OrderListZodSchema } },
-    },
+    200: jsonContent(apiSuccessSchema(OrderListZodSchema), "Paginated order list"),
     ...authErrorResponses,
   },
 });
@@ -88,18 +83,9 @@ orderRegistry.registerPath({
   security: [{ cookieAuth: [] }],
   request: { params: z.object({ orderId: z.string() }) },
   responses: {
-    200: {
-      description: "Order details",
-      content: { "application/json": { schema: OrderZodSchema } },
-    },
-    400: {
-      description: "Invalid order ID",
-      content: { "application/json": { schema: errorSchema } },
-    },
-    404: {
-      description: "Order not found",
-      content: { "application/json": { schema: errorSchema } },
-    },
+    200: jsonContent(apiSuccessSchema(OrderZodSchema), "Order details"),
+    400: jsonContent(apiErrorSchema, "Invalid order ID"),
+    404: jsonContent(apiErrorSchema, "Order not found"),
     ...authErrorResponses,
   },
 });
@@ -117,14 +103,8 @@ orderRegistry.registerPath({
   security: [{ cookieAuth: [] }],
   request: { params: OrderListQuerySchema },
   responses: {
-    200: {
-      description: "Paginated order list",
-      content: { "application/json": { schema: OrderListZodSchema } },
-    },
-    422: {
-      description: "Validation failed",
-      content: { "application/json": { schema: validationErrorSchema } },
-    },
+    200: jsonContent(apiSuccessSchema(OrderListZodSchema), "Paginated order list"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
     ...authErrorResponses,
   },
 });
@@ -142,25 +122,13 @@ orderRegistry.registerPath({
   security: [{ cookieAuth: [] }],
   request: {
     params: z.object({ orderId: z.string() }),
-    body: { content: { "application/json": { schema: UpdateOrderStatusBodySchema } }, required: true },
+    body: jsonBody(UpdateOrderStatusBodySchema),
   },
   responses: {
-    200: {
-      description: "Updated order",
-      content: { "application/json": { schema: OrderZodSchema } },
-    },
-    400: {
-      description: "Invalid order ID",
-      content: { "application/json": { schema: errorSchema } },
-    },
-    404: {
-      description: "Order not found",
-      content: { "application/json": { schema: errorSchema } },
-    },
-    422: {
-      description: "Invalid status transition or validation failure",
-      content: { "application/json": { schema: errorSchema } },
-    },
+    200: jsonContent(apiSuccessSchema(OrderZodSchema), "Updated order"),
+    400: jsonContent(apiErrorSchema, "Invalid order ID"),
+    404: jsonContent(apiErrorSchema, "Order not found"),
+    422: jsonContent(apiErrorSchema, "Invalid status transition or validation failure"),
     ...authErrorResponses,
   },
 });
@@ -178,25 +146,13 @@ orderRegistry.registerPath({
   security: [{ cookieAuth: [] }],
   request: {
     params: z.object({ orderId: z.string() }),
-    body: { content: { "application/json": { schema: UpdatePaymentStatusBodySchema } }, required: true },
+    body: jsonBody(UpdatePaymentStatusBodySchema),
   },
   responses: {
-    200: {
-      description: "Updated order",
-      content: { "application/json": { schema: OrderZodSchema } },
-    },
-    400: {
-      description: "Invalid order ID",
-      content: { "application/json": { schema: errorSchema } },
-    },
-    404: {
-      description: "Order not found",
-      content: { "application/json": { schema: errorSchema } },
-    },
-    422: {
-      description: "Validation failed",
-      content: { "application/json": { schema: validationErrorSchema } },
-    },
+    200: jsonContent(apiSuccessSchema(OrderZodSchema), "Updated order"),
+    400: jsonContent(apiErrorSchema, "Invalid order ID"),
+    404: jsonContent(apiErrorSchema, "Order not found"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
     ...authErrorResponses,
   },
 });

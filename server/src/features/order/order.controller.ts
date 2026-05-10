@@ -14,35 +14,36 @@ import {
   OrderListQuerySchema,
 } from "./order.schema";
 import { OrderStatus, PaymentStatus } from "./order.model";
+import { sendSuccess, sendError, sendValidationError } from "../../utils/response";
 
 export async function createOrderHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = CreateOrderBodySchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
     const result = await createOrder(req.user!.sub, parsed.data);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid customer ID" });
+      sendError(res, "Invalid customer ID", 400);
       return;
     }
     if (result.error === "cart_empty") {
-      res.status(422).json({ message: "Cart is empty" });
+      sendError(res, "Cart is empty", 422);
       return;
     }
     if (result.error === "product_unavailable") {
-      res.status(422).json({ message: "One or more products are unavailable or out of stock" });
+      sendError(res, "One or more products are unavailable or out of stock", 422);
       return;
     }
     if (result.error === "no_address") {
-      res.status(422).json({ message: "No shipping address on file — add an address before placing an order" });
+      sendError(res, "No shipping address on file — add an address before placing an order", 422);
       return;
     }
 
-    res.status(201).json(result.data);
+    sendSuccess(res, result.data, 201);
   } catch (err) {
     next(err);
   }
@@ -52,7 +53,7 @@ export async function getMyOrdersHandler(req: Request, res: Response, next: Next
   try {
     const parsed = OrderListQuerySchema.safeParse(req.query);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
@@ -60,11 +61,11 @@ export async function getMyOrdersHandler(req: Request, res: Response, next: Next
     const result = await getOrdersByCustomer(req.user!.sub, page, limit);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid customer ID" });
+      sendError(res, "Invalid customer ID", 400);
       return;
     }
 
-    res.json(result.data);
+    sendSuccess(res, result.data);
   } catch (err) {
     next(err);
   }
@@ -75,15 +76,15 @@ export async function getMyOrderByIdHandler(req: Request, res: Response, next: N
     const result = await getOrderById(req.params.orderId, req.user!.sub);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid order ID" });
+      sendError(res, "Invalid order ID", 400);
       return;
     }
     if (result.error === "not_found") {
-      res.status(404).json({ message: `Order '${req.params.orderId}' not found` });
+      sendError(res, `Order '${req.params.orderId}' not found`, 404);
       return;
     }
 
-    res.json(result.data);
+    sendSuccess(res, result.data);
   } catch (err) {
     next(err);
   }
@@ -93,7 +94,7 @@ export async function listAllOrdersHandler(req: Request, res: Response, next: Ne
   try {
     const parsed = OrderListQuerySchema.safeParse(req.query);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
@@ -105,7 +106,7 @@ export async function listAllOrdersHandler(req: Request, res: Response, next: Ne
       payment_status: payment_status as PaymentStatus | undefined,
     });
 
-    res.json(result.data);
+    sendSuccess(res, result.data);
   } catch (err) {
     next(err);
   }
@@ -115,26 +116,26 @@ export async function updateOrderStatusHandler(req: Request, res: Response, next
   try {
     const parsed = UpdateOrderStatusBodySchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
     const result = await updateOrderStatus(req.params.orderId, parsed.data.status, parsed.data.tracking_number);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid order ID" });
+      sendError(res, "Invalid order ID", 400);
       return;
     }
     if (result.error === "not_found") {
-      res.status(404).json({ message: `Order '${req.params.orderId}' not found` });
+      sendError(res, `Order '${req.params.orderId}' not found`, 404);
       return;
     }
     if (result.error === "invalid_transition") {
-      res.status(422).json({ message: `Cannot transition order to '${parsed.data.status}' from its current status` });
+      sendError(res, `Cannot transition order to '${parsed.data.status}' from its current status`, 422);
       return;
     }
 
-    res.json(result.data);
+    sendSuccess(res, result.data);
   } catch (err) {
     next(err);
   }
@@ -144,22 +145,22 @@ export async function updatePaymentStatusHandler(req: Request, res: Response, ne
   try {
     const parsed = UpdatePaymentStatusBodySchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
     const result = await updatePaymentStatus(req.params.orderId, parsed.data.payment_status);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid order ID" });
+      sendError(res, "Invalid order ID", 400);
       return;
     }
     if (result.error === "not_found") {
-      res.status(404).json({ message: `Order '${req.params.orderId}' not found` });
+      sendError(res, `Order '${req.params.orderId}' not found`, 404);
       return;
     }
 
-    res.json(result.data);
+    sendSuccess(res, result.data);
   } catch (err) {
     next(err);
   }

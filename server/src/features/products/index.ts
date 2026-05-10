@@ -24,7 +24,14 @@ import {
   deleteProductItemHandler,
 } from "./product.controller";
 import { requireAuth, requireRole } from "../auth/auth.middleware";
-import { authErrorResponses } from "../../utils/openapi";
+import {
+  jsonContent,
+  jsonBody,
+  apiSuccessSchema,
+  apiErrorSchema,
+  apiValidationErrorSchema,
+  authErrorResponses,
+} from "../../utils/openapi";
 
 const router = Router();
 
@@ -40,10 +47,7 @@ productsRegistry.registerPath({
   description: "Returns the static list of supported product types.",
   tags: ["Products"],
   responses: {
-    200: {
-      description: "List of product types",
-      content: { "application/json": { schema: z.array(ProductTypeSchema) } },
-    },
+    200: jsonContent(apiSuccessSchema(z.array(ProductTypeSchema)), "List of product types"),
   },
 });
 router.get("/types", listProductTypes);
@@ -59,10 +63,7 @@ productsRegistry.registerPath({
   tags: ["Products"],
   request: { query: ProductListQuerySchema },
   responses: {
-    200: {
-      description: "A paginated list of products with their variants",
-      content: { "application/json": { schema: ProductListSchema } },
-    },
+    200: jsonContent(apiSuccessSchema(ProductListSchema), "A paginated list of products with their variants"),
   },
 });
 router.get("/", listProducts);
@@ -77,14 +78,9 @@ productsRegistry.registerPath({
   tags: ["Products"],
   request: { params: z.object({ id: z.string() }) },
   responses: {
-    200: {
-      description: "Product with all its variants",
-      content: { "application/json": { schema: ProductSchema } },
-    },
-    404: {
-      description: "Product not found",
-      content: { "application/json": { schema: z.object({ message: z.string() }) } },
-    },
+    200: jsonContent(apiSuccessSchema(ProductSchema), "Product with all its variants"),
+    400: jsonContent(apiErrorSchema, "Invalid product ID"),
+    404: jsonContent(apiErrorSchema, "Product not found"),
   },
 });
 router.get("/:id", getProduct);
@@ -100,24 +96,12 @@ productsRegistry.registerPath({
   tags: ["Products"],
   security: [{ cookieAuth: [] }],
   request: {
-    body: {
-      content: { "application/json": { schema: CreateProductBodySchema } },
-      required: true,
-    },
+    body: jsonBody(CreateProductBodySchema),
   },
   responses: {
-    201: {
-      description: "Product created",
-      content: { "application/json": { schema: ProductSchema } },
-    },
-    200: {
-      description: "Duplicate idempotency_key — existing product returned",
-      content: { "application/json": { schema: ProductSchema } },
-    },
-    422: {
-      description: "Validation failed",
-      content: { "application/json": { schema: z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) }) } },
-    },
+    201: jsonContent(apiSuccessSchema(ProductSchema), "Product created"),
+    200: jsonContent(apiSuccessSchema(ProductSchema), "Duplicate idempotency_key — existing product returned"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
     ...authErrorResponses,
   },
 });
@@ -135,19 +119,13 @@ productsRegistry.registerPath({
   security: [{ cookieAuth: [] }],
   request: {
     params: z.object({ id: z.string() }),
-    body: {
-      content: { "application/json": { schema: UpdateProductBodySchema } },
-      required: true,
-    },
+    body: jsonBody(UpdateProductBodySchema),
   },
   responses: {
-    200: {
-      description: "Product updated",
-      content: { "application/json": { schema: ProductSchema } },
-    },
-    400: { description: "Invalid product ID", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    404: { description: "Product not found", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    422: { description: "Validation failed", content: { "application/json": { schema: z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) }) } } },
+    200: jsonContent(apiSuccessSchema(ProductSchema), "Product updated"),
+    400: jsonContent(apiErrorSchema, "Invalid product ID"),
+    404: jsonContent(apiErrorSchema, "Product not found"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
     ...authErrorResponses,
   },
 });
@@ -166,8 +144,8 @@ productsRegistry.registerPath({
   request: { params: z.object({ id: z.string() }) },
   responses: {
     204: { description: "Product deleted" },
-    400: { description: "Invalid product ID", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    404: { description: "Product not found", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
+    400: jsonContent(apiErrorSchema, "Invalid product ID"),
+    404: jsonContent(apiErrorSchema, "Product not found"),
     ...authErrorResponses,
   },
 });
@@ -184,17 +162,14 @@ productsRegistry.registerPath({
   security: [{ cookieAuth: [] }],
   request: {
     params: z.object({ id: z.string() }),
-    body: {
-      content: { "application/json": { schema: CreateProductItemBodySchema } },
-      required: true,
-    },
+    body: jsonBody(CreateProductItemBodySchema),
   },
   responses: {
-    201: { description: "Variant created", content: { "application/json": { schema: ProductItemSchema } } },
-    200: { description: "Duplicate idempotency_key — existing variant returned", content: { "application/json": { schema: ProductItemSchema } } },
-    400: { description: "Invalid product ID", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    404: { description: "Product not found", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    422: { description: "Validation failed", content: { "application/json": { schema: z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) }) } } },
+    201: jsonContent(apiSuccessSchema(ProductItemSchema), "Variant created"),
+    200: jsonContent(apiSuccessSchema(ProductItemSchema), "Duplicate idempotency_key — existing variant returned"),
+    400: jsonContent(apiErrorSchema, "Invalid product ID"),
+    404: jsonContent(apiErrorSchema, "Product not found"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
     ...authErrorResponses,
   },
 });
@@ -211,16 +186,13 @@ productsRegistry.registerPath({
   security: [{ cookieAuth: [] }],
   request: {
     params: z.object({ id: z.string(), itemId: z.string() }),
-    body: {
-      content: { "application/json": { schema: UpdateProductItemBodySchema } },
-      required: true,
-    },
+    body: jsonBody(UpdateProductItemBodySchema),
   },
   responses: {
-    200: { description: "Variant updated", content: { "application/json": { schema: ProductItemSchema } } },
-    400: { description: "Invalid ID", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    404: { description: "Variant not found", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    422: { description: "Validation failed", content: { "application/json": { schema: z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) }) } } },
+    200: jsonContent(apiSuccessSchema(ProductItemSchema), "Variant updated"),
+    400: jsonContent(apiErrorSchema, "Invalid ID"),
+    404: jsonContent(apiErrorSchema, "Variant not found"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
     ...authErrorResponses,
   },
 });
@@ -238,8 +210,8 @@ productsRegistry.registerPath({
   request: { params: z.object({ id: z.string(), itemId: z.string() }) },
   responses: {
     204: { description: "Variant deleted" },
-    400: { description: "Invalid ID", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    404: { description: "Variant not found", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
+    400: jsonContent(apiErrorSchema, "Invalid ID"),
+    404: jsonContent(apiErrorSchema, "Variant not found"),
     ...authErrorResponses,
   },
 });

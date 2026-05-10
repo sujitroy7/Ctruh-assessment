@@ -3,7 +3,14 @@ import { z } from "zod";
 import { cartRegistry, CartItemSchema, AddToCartBodySchema } from "./cart.schema";
 import { getCartHandler, addToCartHandler, removeFromCartHandler } from "./cart.controller";
 import { requireAuth, requireRole } from "../auth/auth.middleware";
-import { authErrorResponses } from "../../utils/openapi";
+import {
+  jsonContent,
+  jsonBody,
+  apiSuccessSchema,
+  apiErrorSchema,
+  apiValidationErrorSchema,
+  authErrorResponses,
+} from "../../utils/openapi";
 
 const router = Router();
 
@@ -20,10 +27,7 @@ cartRegistry.registerPath({
   tags: ["Cart"],
   security: [{ cookieAuth: [] }],
   responses: {
-    200: {
-      description: "List of cart items",
-      content: { "application/json": { schema: z.array(CartItemSchema) } },
-    },
+    200: jsonContent(apiSuccessSchema(z.array(CartItemSchema)), "List of cart items"),
     ...authErrorResponses,
   },
 });
@@ -40,28 +44,13 @@ cartRegistry.registerPath({
   tags: ["Cart"],
   security: [{ cookieAuth: [] }],
   request: {
-    body: {
-      content: { "application/json": { schema: AddToCartBodySchema } },
-      required: true,
-    },
+    body: jsonBody(AddToCartBodySchema),
   },
   responses: {
-    201: {
-      description: "Item added to cart",
-      content: { "application/json": { schema: CartItemSchema } },
-    },
-    200: {
-      description: "Item already in cart — quantity incremented",
-      content: { "application/json": { schema: CartItemSchema } },
-    },
-    404: {
-      description: "Product variant not found",
-      content: { "application/json": { schema: z.object({ message: z.string() }) } },
-    },
-    422: {
-      description: "Validation failed",
-      content: { "application/json": { schema: z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) }) } },
-    },
+    201: jsonContent(apiSuccessSchema(CartItemSchema), "Item added to cart"),
+    200: jsonContent(apiSuccessSchema(CartItemSchema), "Item already in cart — quantity incremented"),
+    404: jsonContent(apiErrorSchema, "Product variant not found"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
     ...authErrorResponses,
   },
 });
@@ -80,14 +69,8 @@ cartRegistry.registerPath({
   request: { params: z.object({ itemId: z.string() }) },
   responses: {
     204: { description: "Item removed" },
-    400: {
-      description: "Invalid cart item ID",
-      content: { "application/json": { schema: z.object({ message: z.string() }) } },
-    },
-    404: {
-      description: "Cart item not found",
-      content: { "application/json": { schema: z.object({ message: z.string() }) } },
-    },
+    400: jsonContent(apiErrorSchema, "Invalid cart item ID"),
+    404: jsonContent(apiErrorSchema, "Cart item not found"),
     ...authErrorResponses,
   },
 });

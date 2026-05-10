@@ -20,6 +20,7 @@ import uploadRouter from "./features/upload";
 import { generateOpenApiSpec } from "./openapi";
 import { env } from "./config/env";
 import { apiLimiter, authLimiter } from "./middleware/rateLimiter";
+import { sendError } from "./utils/response";
 
 const app = express();
 
@@ -58,7 +59,7 @@ app.use("/api/upload", uploadRouter);
 
 // Catch-all error handler — must have all four params for Express to treat it as an error handler.
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  res.status(err.status || 500).json({ message: err.message });
+  sendError(res, err.message || "Internal server error", err.status || 500);
 });
 
 mongoose

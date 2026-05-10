@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { sendError } from "../utils/response";
 
 interface Bucket {
   tokens: number;
@@ -59,7 +60,7 @@ function createRateLimiter(options: RateLimiterOptions) {
       res.setHeader("Retry-After", retryAfter);
       res.setHeader("X-RateLimit-Limit", capacity);
       res.setHeader("X-RateLimit-Remaining", 0);
-      res.status(429).json({ message: "Too many requests. Please try again later." });
+      sendError(res, "Too many requests. Please try again later.", 429);
       return;
     }
 

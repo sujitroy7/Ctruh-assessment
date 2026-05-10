@@ -1,23 +1,32 @@
 import { Request, Response, NextFunction } from "express";
 import { RegisterOwnerBodySchema } from "./owner.schema";
 import { registerOwner } from "./owner.service";
+import {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+} from "../../utils/response";
 
-export async function registerOwnerHandler(req: Request, res: Response, next: NextFunction) {
+export async function registerOwnerHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const parsed = RegisterOwnerBodySchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
     const result = await registerOwner(parsed.data.email, parsed.data.password);
 
     if (result.error === "already_exists") {
-      res.status(409).json({ message: "Owner already registered" });
+      sendError(res, "Owner already registered", 409);
       return;
     }
 
-    res.status(201).json({ message: "Owner registered successfully" });
+    sendSuccess(res, null, 201, "Owner registered successfully");
   } catch (err) {
     next(err);
   }

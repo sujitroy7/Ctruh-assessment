@@ -4,6 +4,7 @@ import { Customer } from "../customer/customer.model";
 import { comparePassword, issueTokens, rotateRefreshToken, revokeRefreshToken } from "./auth.service";
 import { LoginBodySchema } from "./auth.schema";
 import { env } from "../../config/env";
+import { sendSuccess, sendError, sendValidationError } from "../../utils/response";
 
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -46,7 +47,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = LoginBodySchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
@@ -58,7 +59,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
         : await Customer.findOne({ email, is_deleted: false }).lean();
 
     if (!subject || !(await comparePassword(password, subject.password_hash))) {
-      res.status(401).json({ message: "Invalid credentials" });
+      sendError(res, "Invalid credentials", 401);
       return;
     }
 
@@ -67,7 +68,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
     const name = "f_name" in subject ? `${subject.f_name} ${subject.l_name}`.trim() : "";
 
-    res.json({
+    sendSuccess(res, {
       user: { id: String(subject._id), name, email: subject.email, role },
       access_token,
       refresh_token,
@@ -82,19 +83,19 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
   try {
     const token = extractRefreshToken(req);
     if (!token) {
-      res.status(401).json({ message: "Missing or mismatched refresh token" });
+      sendError(res, "Missing or mismatched refresh token", 401);
       return;
     }
 
     const result = await rotateRefreshToken(token);
     if ("error" in result) {
       clearTokenCookies(res);
-      res.status(401).json({ message: "Invalid or expired refresh token" });
+      sendError(res, "Invalid or expired refresh token", 401);
       return;
     }
 
     setTokenCookies(res, result.access_token, result.refresh_token);
-    res.json({ message: "Tokens refreshed" });
+    sendSuccess(res, { access_token: result.access_token, refresh_token: result.refresh_token });
   } catch (err) {
     next(err);
   }

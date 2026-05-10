@@ -16,9 +16,10 @@ import {
   UpdateProductItemBodySchema,
   PRODUCT_TYPES,
 } from "./product.schema";
+import { sendSuccess, sendError, sendValidationError } from "../../utils/response";
 
 export function listProductTypes(_req: Request, res: Response) {
-  res.json(PRODUCT_TYPES);
+  sendSuccess(res, PRODUCT_TYPES);
 }
 
 export async function listProducts(req: Request, res: Response, next: NextFunction) {
@@ -28,7 +29,7 @@ export async function listProducts(req: Request, res: Response, next: NextFuncti
     const minPrice = req.query.minPrice !== undefined ? Number(req.query.minPrice) : undefined;
     const maxPrice = req.query.maxPrice !== undefined ? Number(req.query.maxPrice) : undefined;
 
-    res.json(
+    sendSuccess(res,
       await getProducts({
         page,
         limit,
@@ -50,15 +51,15 @@ export async function getProduct(req: Request, res: Response, next: NextFunction
     const result = await getProductById(req.params.id);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid product ID" });
+      sendError(res, "Invalid product ID", 400);
       return;
     }
     if (result.error === "not_found") {
-      res.status(404).json({ message: `Product '${req.params.id}' not found` });
+      sendError(res, `Product '${req.params.id}' not found`, 404);
       return;
     }
 
-    res.json(result.data);
+    sendSuccess(res, result.data);
   } catch (err) {
     next(err);
   }
@@ -68,12 +69,12 @@ export async function createProductHandler(req: Request, res: Response, next: Ne
   try {
     const parsed = CreateProductBodySchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
     const result = await createProduct(parsed.data);
-    res.status(result.created ? 201 : 200).json(result.data);
+    sendSuccess(res, result.data, result.created ? 201 : 200);
   } catch (err) {
     next(err);
   }
@@ -83,22 +84,22 @@ export async function updateProductHandler(req: Request, res: Response, next: Ne
   try {
     const parsed = UpdateProductBodySchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
     const result = await updateProduct(req.params.id, parsed.data);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid product ID" });
+      sendError(res, "Invalid product ID", 400);
       return;
     }
     if (result.error === "not_found") {
-      res.status(404).json({ message: `Product '${req.params.id}' not found` });
+      sendError(res, `Product '${req.params.id}' not found`, 404);
       return;
     }
 
-    res.json(result.data);
+    sendSuccess(res, result.data);
   } catch (err) {
     next(err);
   }
@@ -109,11 +110,11 @@ export async function deleteProductHandler(req: Request, res: Response, next: Ne
     const result = await deleteProduct(req.params.id);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid product ID" });
+      sendError(res, "Invalid product ID", 400);
       return;
     }
     if (result.error === "not_found") {
-      res.status(404).json({ message: `Product '${req.params.id}' not found` });
+      sendError(res, `Product '${req.params.id}' not found`, 404);
       return;
     }
 
@@ -127,22 +128,22 @@ export async function addProductItemHandler(req: Request, res: Response, next: N
   try {
     const parsed = CreateProductItemBodySchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
     const result = await addProductItem(req.params.id, parsed.data);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid product ID" });
+      sendError(res, "Invalid product ID", 400);
       return;
     }
     if (result.error === "not_found") {
-      res.status(404).json({ message: `Product '${req.params.id}' not found` });
+      sendError(res, `Product '${req.params.id}' not found`, 404);
       return;
     }
 
-    res.status(result.created ? 201 : 200).json(result.data);
+    sendSuccess(res, result.data, result.created ? 201 : 200);
   } catch (err) {
     next(err);
   }
@@ -152,22 +153,22 @@ export async function updateProductItemHandler(req: Request, res: Response, next
   try {
     const parsed = UpdateProductItemBodySchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(422).json({ message: "Validation failed", errors: parsed.error.flatten().fieldErrors });
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
     const result = await updateProductItem(req.params.id, req.params.itemId, parsed.data);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid ID" });
+      sendError(res, "Invalid ID", 400);
       return;
     }
     if (result.error === "not_found") {
-      res.status(404).json({ message: `Product item '${req.params.itemId}' not found` });
+      sendError(res, `Product item '${req.params.itemId}' not found`, 404);
       return;
     }
 
-    res.json(result.data);
+    sendSuccess(res, result.data);
   } catch (err) {
     next(err);
   }
@@ -178,11 +179,11 @@ export async function deleteProductItemHandler(req: Request, res: Response, next
     const result = await deleteProductItem(req.params.id, req.params.itemId);
 
     if (result.error === "invalid_id") {
-      res.status(400).json({ message: "Invalid ID" });
+      sendError(res, "Invalid ID", 400);
       return;
     }
     if (result.error === "not_found") {
-      res.status(404).json({ message: `Product item '${req.params.itemId}' not found` });
+      sendError(res, `Product item '${req.params.itemId}' not found`, 404);
       return;
     }
 

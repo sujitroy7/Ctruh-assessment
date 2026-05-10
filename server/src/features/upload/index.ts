@@ -4,7 +4,12 @@ import { z } from "zod";
 import { uploadRegistry, UploadResponseSchema } from "./upload.schema";
 import { uploadImageHandler } from "./upload.controller";
 import { requireAuth, requireRole } from "../auth/auth.middleware";
-import { authErrorResponses } from "../../utils/openapi";
+import {
+  jsonContent,
+  apiSuccessSchema,
+  apiErrorSchema,
+  authErrorResponses,
+} from "../../utils/openapi";
 
 const router = Router();
 
@@ -43,13 +48,10 @@ uploadRegistry.registerPath({
     },
   },
   responses: {
-    201: {
-      description: "Image uploaded — Cloudflare delivery URL returned",
-      content: { "application/json": { schema: UploadResponseSchema } },
-    },
-    400: { description: "No file provided or invalid file type", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    413: { description: "File exceeds 10 MB limit", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
-    502: { description: "Cloudflare Images API error", content: { "application/json": { schema: z.object({ message: z.string() }) } } },
+    201: jsonContent(apiSuccessSchema(UploadResponseSchema), "Image uploaded — Cloudflare delivery URL returned"),
+    400: jsonContent(apiErrorSchema, "No file provided or invalid file type"),
+    413: jsonContent(apiErrorSchema, "File exceeds 10 MB limit"),
+    502: jsonContent(apiErrorSchema, "Cloudflare Images API error"),
     ...authErrorResponses,
   },
 });

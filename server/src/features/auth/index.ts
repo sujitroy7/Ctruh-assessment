@@ -6,6 +6,13 @@ import {
   TokenResponseSchema,
 } from "./auth.schema";
 import { login, refresh, logout } from "./auth.controller";
+import {
+  jsonContent,
+  jsonBody,
+  apiSuccessSchema,
+  apiErrorSchema,
+  apiValidationErrorSchema,
+} from "../../utils/openapi";
 
 const router = Router();
 
@@ -19,28 +26,15 @@ authRegistry.registerPath({
   description: "Defaults to `role: customer` if omitted. Sets tokens as HttpOnly cookies and returns them in the response body.",
   tags: ["Auth"],
   request: {
-    body: {
-      content: { "application/json": { schema: LoginBodySchema } },
-      required: true,
-    },
+    body: jsonBody(LoginBodySchema),
   },
   responses: {
-    200: {
-      description: "Logged in — user info and tokens returned in body; tokens also set as cookies",
-      content: { "application/json": { schema: TokenResponseSchema } },
-    },
-    401: {
-      description: "Invalid credentials",
-      content: { "application/json": { schema: z.object({ message: z.string() }) } },
-    },
-    422: {
-      description: "Validation failed",
-      content: {
-        "application/json": {
-          schema: z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) }),
-        },
-      },
-    },
+    200: jsonContent(
+      apiSuccessSchema(TokenResponseSchema),
+      "Logged in — user info and tokens returned in body; tokens also set as cookies",
+    ),
+    401: jsonContent(apiErrorSchema, "Invalid credentials"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
   },
 });
 router.post("/login", login);
@@ -59,14 +53,11 @@ authRegistry.registerPath({
     headers: z.object({ "x-refresh-token": z.string() }),
   },
   responses: {
-    200: {
-      description: "Tokens rotated — new cookies issued",
-      content: { "application/json": { schema: TokenResponseSchema } },
-    },
-    401: {
-      description: "Missing, mismatched, or expired refresh token",
-      content: { "application/json": { schema: z.object({ message: z.string() }) } },
-    },
+    200: jsonContent(
+      apiSuccessSchema(z.object({ access_token: z.string(), refresh_token: z.string() })),
+      "Tokens rotated — new cookies issued",
+    ),
+    401: jsonContent(apiErrorSchema, "Missing, mismatched, or expired refresh token"),
   },
 });
 router.post("/refresh", refresh);

@@ -15,13 +15,19 @@ import {
   deleteAddressHandler,
 } from "./customer.controller";
 import { requireAuth, requireRole } from "../auth/auth.middleware";
-import { authErrorResponses } from "../../utils/openapi";
+import {
+  jsonContent,
+  jsonBody,
+  apiSuccessSchema,
+  apiMessageSchema,
+  apiErrorSchema,
+  apiValidationErrorSchema,
+  authErrorResponses,
+} from "../../utils/openapi";
 
 const router = Router();
 
 const customerOnly = [requireAuth, requireRole("customer")];
-const errorSchema = z.object({ message: z.string() });
-const validationErrorSchema = z.object({ message: z.string(), errors: z.record(z.string(), z.array(z.string())) });
 
 // ======================================================
 // ROUTE: REGISTER CUSTOMER
@@ -32,24 +38,12 @@ customersRegistry.registerPath({
   summary: "Register a new customer",
   tags: ["Customers"],
   request: {
-    body: {
-      content: { "application/json": { schema: RegisterCustomerBodySchema } },
-      required: true,
-    },
+    body: jsonBody(RegisterCustomerBodySchema),
   },
   responses: {
-    201: {
-      description: "Customer registered successfully",
-      content: { "application/json": { schema: z.object({ message: z.string() }) } },
-    },
-    409: {
-      description: "Email already in use",
-      content: { "application/json": { schema: errorSchema } },
-    },
-    422: {
-      description: "Validation failed",
-      content: { "application/json": { schema: validationErrorSchema } },
-    },
+    201: jsonContent(apiMessageSchema, "Customer registered successfully"),
+    409: jsonContent(apiErrorSchema, "Email already in use"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
   },
 });
 router.post("/register", registerCustomerHandler);
@@ -65,17 +59,11 @@ customersRegistry.registerPath({
   tags: ["Addresses"],
   security: [{ cookieAuth: [] }],
   request: {
-    body: { content: { "application/json": { schema: AddressBodySchema } }, required: true },
+    body: jsonBody(AddressBodySchema),
   },
   responses: {
-    201: {
-      description: "Address added",
-      content: { "application/json": { schema: AddressZodSchema } },
-    },
-    422: {
-      description: "Validation failed",
-      content: { "application/json": { schema: validationErrorSchema } },
-    },
+    201: jsonContent(apiSuccessSchema(AddressZodSchema), "Address added"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
     ...authErrorResponses,
   },
 });
@@ -92,10 +80,7 @@ customersRegistry.registerPath({
   tags: ["Addresses"],
   security: [{ cookieAuth: [] }],
   responses: {
-    200: {
-      description: "List of addresses",
-      content: { "application/json": { schema: z.array(AddressZodSchema) } },
-    },
+    200: jsonContent(apiSuccessSchema(z.array(AddressZodSchema)), "List of addresses"),
     ...authErrorResponses,
   },
 });
@@ -113,25 +98,13 @@ customersRegistry.registerPath({
   security: [{ cookieAuth: [] }],
   request: {
     params: z.object({ addressId: z.string() }),
-    body: { content: { "application/json": { schema: UpdateAddressBodySchema } }, required: true },
+    body: jsonBody(UpdateAddressBodySchema),
   },
   responses: {
-    200: {
-      description: "Updated address",
-      content: { "application/json": { schema: AddressZodSchema } },
-    },
-    400: {
-      description: "Invalid ID",
-      content: { "application/json": { schema: errorSchema } },
-    },
-    404: {
-      description: "Customer or address not found",
-      content: { "application/json": { schema: errorSchema } },
-    },
-    422: {
-      description: "Validation failed",
-      content: { "application/json": { schema: validationErrorSchema } },
-    },
+    200: jsonContent(apiSuccessSchema(AddressZodSchema), "Updated address"),
+    400: jsonContent(apiErrorSchema, "Invalid ID"),
+    404: jsonContent(apiErrorSchema, "Customer or address not found"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
     ...authErrorResponses,
   },
 });
@@ -152,14 +125,8 @@ customersRegistry.registerPath({
   },
   responses: {
     204: { description: "Address deleted" },
-    400: {
-      description: "Invalid ID",
-      content: { "application/json": { schema: errorSchema } },
-    },
-    404: {
-      description: "Customer or address not found",
-      content: { "application/json": { schema: errorSchema } },
-    },
+    400: jsonContent(apiErrorSchema, "Invalid ID"),
+    404: jsonContent(apiErrorSchema, "Customer or address not found"),
     ...authErrorResponses,
   },
 });
