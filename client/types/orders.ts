@@ -1,3 +1,5 @@
+import { ShippingAddress } from "./address";
+
 export type OrderStatus =
   | "pending"
   | "confirmed"
