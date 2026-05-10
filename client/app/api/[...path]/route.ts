@@ -15,6 +15,11 @@ async function handler(
   const headers = new Headers();
   const contentType = req.headers.get("content-type");
   if (contentType) headers.set("content-type", contentType);
+
+  if (session?.refreshToken) {
+    headers.set("x-refresh-token", session.refreshToken);
+    headers.set("cookie", `refresh_token=${session.refreshToken}`);
+  }
   if (session?.accessToken) {
     headers.set("cookie", `access_token=${session.accessToken}`);
   }

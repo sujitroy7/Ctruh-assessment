@@ -8,7 +8,7 @@ import { Product, ProductItem, ProductType } from "@/types/products";
 import api from ".";
 
 // ----- GET PRODUCT TYPES -----
-type GetProductTypesResponse = ApiResponse<ProductType>;
+type GetProductTypesResponse = ApiResponse<ProductType[]>;
 export const getProductTypes = async () => {
   const response = await api.get<GetProductTypesResponse>("/products/types");
 

@@ -5,6 +5,7 @@ export type Role = "owner" | "customer";
 export interface Session {
   accessToken?: string;
   accessTokenExpires?: number;
+  refreshToken?: string;
   error?: string;
   user: {
     id: string;

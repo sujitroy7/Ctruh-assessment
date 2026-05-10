@@ -10,6 +10,7 @@ const envSchema = z.object({
 });
 
 const parsed = envSchema.safeParse(process.env);
+console.log(process.env);
 
 if (!parsed.success) {
   console.error(
