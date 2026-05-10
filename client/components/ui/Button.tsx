@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ButtonHTMLAttributes, ReactNode, cloneElement, isValidElement } from "react";
 import clsx from "clsx";
 import { Loader2 } from "lucide-react";
@@ -14,6 +15,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   rightIcon?: ReactNode;
   iconOnly?: boolean;
   fullWidth?: boolean;
+  href?: string;
+  target?: string;
+  rel?: string;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -69,44 +73,59 @@ export default function Button({
   fullWidth = false,
   disabled,
   className,
+  href,
+  target,
+  rel,
   ...props
 }: ButtonProps) {
   const { base, icon: iconSize } = sizeStyles[size];
   const isDisabled = disabled || loading;
 
+  const resolvedClassName = clsx(
+    "inline-flex items-center justify-center",
+    "rounded-md border font-medium transition-all duration-150",
+    "focus:outline-none focus:ring-2 focus:ring-offset-2",
+    !href && "disabled:opacity-50 disabled:cursor-not-allowed",
+    variantStyles[variant],
+    iconOnly ? iconOnlySizeStyles[size] : base,
+    fullWidth && "w-full",
+    className,
+  );
+
+  const content = loading ? (
+    <>
+      <Loader2 className={clsx("animate-spin shrink-0", iconSize)} />
+      {!iconOnly && <span>{loadingText}</span>}
+    </>
+  ) : (
+    <>
+      {leftIcon && isValidElement(leftIcon) &&
+        cloneElement(leftIcon as React.ReactElement<{ className?: string }>, {
+          className: clsx("shrink-0", iconSize, (leftIcon.props as { className?: string }).className),
+        })}
+      {children}
+      {rightIcon && isValidElement(rightIcon) &&
+        cloneElement(rightIcon as React.ReactElement<{ className?: string }>, {
+          className: clsx("shrink-0", iconSize, (rightIcon.props as { className?: string }).className),
+        })}
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} target={target} rel={rel} className={resolvedClassName}>
+        {content}
+      </Link>
+    );
+  }
+
   return (
     <button
       disabled={isDisabled}
-      className={clsx(
-        "inline-flex items-center justify-center",
-        "rounded-md border font-medium transition-all duration-150",
-        "focus:outline-none focus:ring-2 focus:ring-offset-2",
-        "disabled:opacity-50 disabled:cursor-not-allowed",
-        variantStyles[variant],
-        iconOnly ? iconOnlySizeStyles[size] : base,
-        fullWidth && "w-full",
-        className,
-      )}
+      className={resolvedClassName}
       {...props}
     >
-      {loading ? (
-        <>
-          <Loader2 className={clsx("animate-spin shrink-0", iconSize)} />
-          {!iconOnly && <span>{loadingText}</span>}
-        </>
-      ) : (
-        <>
-          {leftIcon && isValidElement(leftIcon) &&
-            cloneElement(leftIcon as React.ReactElement<{ className?: string }>, {
-              className: clsx("shrink-0", iconSize, (leftIcon.props as { className?: string }).className),
-            })}
-          {children}
-          {rightIcon && isValidElement(rightIcon) &&
-            cloneElement(rightIcon as React.ReactElement<{ className?: string }>, {
-              className: clsx("shrink-0", iconSize, (rightIcon.props as { className?: string }).className),
-            })}
-        </>
-      )}
+      {content}
     </button>
   );
 }
