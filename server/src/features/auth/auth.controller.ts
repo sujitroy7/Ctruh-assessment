@@ -1,47 +1,25 @@
 import { Request, Response, NextFunction } from "express";
 import { Owner } from "../owner/owner.model";
 import { Customer } from "../customer/customer.model";
-import { comparePassword, issueTokens, rotateRefreshToken, revokeRefreshToken } from "./auth.service";
+import {
+  comparePassword,
+  issueTokens,
+  rotateRefreshToken,
+  revokeRefreshToken,
+} from "./auth.service";
 import { LoginBodySchema } from "./auth.schema";
-import { env } from "../../config/env";
-import { sendSuccess, sendError, sendValidationError } from "../../utils/response";
-
-const COOKIE_OPTS = {
-  httpOnly: true,
-  sameSite: "strict" as const,
-  secure: env.COOKIE_SECURE,
-};
+import {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+} from "../../utils/response";
+import {
+  clearTokenCookies,
+  extractRefreshToken,
+  setTokenCookies,
+} from "./auth.utils";
 
 const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000;
-const REFRESH_TOKEN_TTL_MS = 15 * 24 * 60 * 60 * 1000;
-
-function setTokenCookies(res: Response, access_token: string, refresh_token: string) {
-  res.cookie("access_token", access_token, {
-    ...COOKIE_OPTS,
-    maxAge: ACCESS_TOKEN_TTL_MS,
-  });
-  res.cookie("refresh_token", refresh_token, {
-    ...COOKIE_OPTS,
-    maxAge: REFRESH_TOKEN_TTL_MS,
-    path: "/api/auth",
-  });
-}
-
-function clearTokenCookies(res: Response) {
-  res.clearCookie("access_token", COOKIE_OPTS);
-  res.clearCookie("refresh_token", { ...COOKIE_OPTS, path: "/api/auth" });
-}
-
-function extractRefreshToken(req: Request): string | null {
-  const fromCookie: string | undefined = req.cookies?.refresh_token;
-  const fromHeader = req.headers["x-refresh-token"];
-  const headerVal = Array.isArray(fromHeader) ? fromHeader[0] : fromHeader;
-
-  if (!fromCookie || !headerVal) return null;
-  if (fromCookie !== headerVal) return null;
-
-  return fromCookie;
-}
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
@@ -63,10 +41,14 @@ export async function login(req: Request, res: Response, next: NextFunction) {
       return;
     }
 
-    const { access_token, refresh_token } = await issueTokens(String(subject._id), role);
+    const { access_token, refresh_token } = await issueTokens(
+      String(subject._id),
+      role,
+    );
     setTokenCookies(res, access_token, refresh_token);
 
-    const name = "f_name" in subject ? `${subject.f_name} ${subject.l_name}`.trim() : "";
+    const name =
+      "f_name" in subject ? `${subject.f_name} ${subject.l_name}`.trim() : "";
 
     sendSuccess(res, {
       user: { id: String(subject._id), name, email: subject.email, role },
@@ -95,7 +77,10 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
     }
 
     setTokenCookies(res, result.access_token, result.refresh_token);
-    sendSuccess(res, { access_token: result.access_token, refresh_token: result.refresh_token });
+    sendSuccess(res, {
+      access_token: result.access_token,
+      refresh_token: result.refresh_token,
+    });
   } catch (err) {
     next(err);
   }
@@ -103,7 +88,7 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
 
 export async function logout(req: Request, res: Response, next: NextFunction) {
   try {
-    const token = extractRefreshToken(req);
+    const token: string | undefined = req.cookies?.refresh_token;
     if (token) {
       await revokeRefreshToken(token);
     }
