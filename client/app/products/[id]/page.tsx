@@ -1,14 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ShoppingCart } from "lucide-react";
+import { Pencil } from "lucide-react";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import ColorSelector from "./_components/ColorSelector";
 import GenderSelector from "./_components/GenderSelector";
+import AddToCartButton from "./_components/AddToCartButton";
 
 interface ProductItem {
   id: string;
   gender: string;
-  type: string;
   color: string;
   price: number;
   stock: number;
@@ -19,6 +21,7 @@ interface ProductItem {
 interface Product {
   id: string;
   name: string;
+  type: string;
   is_deleted: boolean;
   items: ProductItem[];
 }
@@ -28,12 +31,12 @@ const products: Record<string, Product> = {
   "1": {
     id: "1",
     name: "Product One",
+    type: "Electronics",
     is_deleted: false,
     items: [
       {
         id: "1-a",
         gender: "unisex",
-        type: "Electronics",
         color: "#3b82f6",
         price: 29.99,
         stock: 12,
@@ -45,12 +48,12 @@ const products: Record<string, Product> = {
   "2": {
     id: "2",
     name: "Product Two",
+    type: "Clothing",
     is_deleted: false,
     items: [
       {
         id: "2-a",
         gender: "men",
-        type: "Clothing",
         color: "#111827",
         price: 49.99,
         stock: 5,
@@ -60,7 +63,6 @@ const products: Record<string, Product> = {
       {
         id: "2-b",
         gender: "women",
-        type: "Clothing",
         color: "#f9a8d4",
         price: 49.99,
         stock: 0,
@@ -72,12 +74,12 @@ const products: Record<string, Product> = {
   "3": {
     id: "3",
     name: "Product Three",
+    type: "Books",
     is_deleted: false,
     items: [
       {
         id: "3-a",
         gender: "unisex",
-        type: "Books",
         color: "#f59e0b",
         price: 19.99,
         stock: 0,
@@ -89,12 +91,12 @@ const products: Record<string, Product> = {
   "4": {
     id: "4",
     name: "Product Four",
+    type: "Electronics",
     is_deleted: false,
     items: [
       {
         id: "4-a",
         gender: "unisex",
-        type: "Electronics",
         color: "#6366f1",
         price: 89.99,
         stock: 3,
@@ -111,6 +113,8 @@ export default async function ProductDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const session = await getServerSession(authOptions);
+  const isOwner = session?.user?.role === "owner";
   const product = products[id];
 
   if (!product || product.is_deleted) notFound();
@@ -124,7 +128,7 @@ export default async function ProductDetailsPage({
       : null;
   const colors = [...new Set(activeItems.map((i) => i.color.toLowerCase()))];
   const genders = [...new Set(activeItems.map((i) => i.gender.toLowerCase()))];
-  const types = [...new Set(activeItems.map((i) => i.type))];
+  const types = [product.type];
   const inStock = activeItems.some((i) => i.stock > 0);
 
   return (
@@ -203,14 +207,23 @@ export default async function ProductDetailsPage({
 
             {/* Actions */}
             <div className="flex flex-col gap-3 mt-auto pt-1">
-              <button
-                type="button"
-                disabled={!inStock}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-ink text-ink-inverse text-sm font-semibold hover:bg-ink/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                Add to Cart
-              </button>
+              {isOwner ? (
+                <Link
+                  href={`/admin/products/${id}`}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-ink text-ink-inverse text-sm font-semibold hover:bg-ink/90 active:scale-[0.98] transition-all"
+                >
+                  <Pencil className="w-4 h-4" />
+                  Edit Product
+                </Link>
+              ) : (
+                <AddToCartButton
+                  productId={product.id}
+                  productName={product.name}
+                  items={activeItems}
+                  defaultColor={colors[0]}
+                  defaultGender={genders[0]}
+                />
+              )}
               <Image
                 src="/assest/PDP_FREE_SHIPPING.webp"
                 alt="Cash on delivery · Free shipping on all orders · Easy returns"

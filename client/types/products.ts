@@ -6,7 +6,7 @@ export type ProductType = {
 };
 
 export interface ProductItem {
-  id: string;
+  _id: string;
   gender: Gender;
   color: string;
   price: number;
@@ -16,7 +16,7 @@ export interface ProductItem {
 }
 
 export interface Product {
-  id: string;
+  _id: string;
   name: string;
   type: ProductType;
   items: ProductItem[];
