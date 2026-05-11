@@ -2,7 +2,7 @@ import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
 // Routes accessible without authentication
-const publicRoutes = ["/", "/cart", "/products"];
+const publicRoutes = ["/", "/cart", "/products", "/api"];
 
 // Auth-related pages — skip protection but handle redirect-if-logged-in logic
 const publicAuthPages = ["/login", "/admin/login", "/unauthorized"];
