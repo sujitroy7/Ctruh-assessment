@@ -38,7 +38,7 @@ export const login = async (
   role: Role = "customer",
 ) => {
   const response = await axios.post<ApiResponse<LoginResponse>>(
-    `${process.env.BACKEND_URL}/auth/login`,
+    `${process.env.BACKEND_URL}/api/auth/login`,
     {
       email,
       password,
