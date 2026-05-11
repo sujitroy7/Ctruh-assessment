@@ -61,7 +61,7 @@ export default function ProductItemsTable({ items }: ProductItemsTableProps) {
               <tbody>
                 {visibleItems.map((item, idx) => (
                   <tr
-                    key={item.id}
+                    key={item._id}
                     className={idx % 2 === 0 ? "bg-surface" : "bg-neutral-50"}
                   >
                     <td className="px-4 py-2 text-ink-soft capitalize">

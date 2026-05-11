@@ -4,6 +4,11 @@ import { getProductById, getProductTypes } from "@/lib/api/products";
 
 type PageProps = { params: Promise<{ id: string }> };
 
+function getProductTypeId(type: { id?: string; _id?: string } | string | null) {
+  if (typeof type === "string") return type;
+  return type?.id ?? type?._id ?? "";
+}
+
 export default async function EditProductPage({ params }: PageProps) {
   const { id } = await params;
   const productTypesRes = await getProductTypes();
@@ -12,14 +17,8 @@ export default async function EditProductPage({ params }: PageProps) {
   if (id === "new") {
     return (
       <ProductForm
-        formType="update"
+        formType="create"
         productTypes={productTypes}
-        initialData={{
-          _id: id,
-          name: "",
-          type: "",
-          items: [],
-        }}
       />
     );
   }
@@ -35,7 +34,7 @@ export default async function EditProductPage({ params }: PageProps) {
       initialData={{
         _id: id,
         name: productDetailsRes.data.name,
-        type: productDetailsRes.data.type.id,
+        type: getProductTypeId(productDetailsRes.data.type),
         items: productDetailsRes.data.items.map((item) => ({
           ...item,
           images: item.images ?? [],

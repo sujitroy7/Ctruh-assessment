@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { getAllProducts } from "@/lib/api/products";
-import ProductRow, { Product } from "../_components/ProductRow";
+import ProductRow, { type Product } from "../_components/ProductRow";
 
 const PAGE_SIZE = 10;
 
@@ -21,11 +21,22 @@ export default function AdminProducts() {
     queryFn: () => getAllProducts({ page, limit: PAGE_SIZE }),
   });
 
-  // @ts-ignore
-  const total = response?.data?.total ?? 0;
+  const productsData = response?.success ? response.data : undefined;
+  const total = productsData?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  // @ts-ignore
-  const pageProducts = response?.data?.data ?? [];
+  const pageProducts: Product[] = (productsData?.data ?? []).map((product) => ({
+    ...product,
+    type:
+      typeof product.type === "string"
+        ? product.type
+        : (product.type?.title ?? ""),
+    is_deleted: "is_deleted" in product ? Boolean(product.is_deleted) : false,
+    items: product.items.map((item) => ({
+      ...item,
+      images: item.images ?? [],
+      is_deleted: "is_deleted" in item ? Boolean(item.is_deleted) : false,
+    })),
+  }));
 
   return (
     <div className="min-h-screen bg-canvas px-6 py-8">
@@ -89,8 +100,8 @@ export default function AdminProducts() {
                 </td>
               </tr>
             ) : (
-              pageProducts.map((product: any) => (
-                <ProductRow key={product.id} product={product} />
+              pageProducts.map((product) => (
+                <ProductRow key={product._id} product={product} />
               ))
             )}
           </tbody>
