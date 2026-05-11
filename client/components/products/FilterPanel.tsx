@@ -53,17 +53,29 @@ export default function FilterPanel({
     values.priceMin !== absoluteMin ||
     values.priceMax !== absoluteMax;
 
-  const set = (partial: Partial<FilterValues>) => onChange({ ...values, ...partial });
+  const set = (partial: Partial<FilterValues>) =>
+    onChange({ ...values, ...partial });
 
   const clearAll = () =>
-    onChange({ gender: "", color: "", type: "", priceMin: absoluteMin, priceMax: absoluteMax });
+    onChange({
+      gender: "",
+      color: "",
+      type: "",
+      priceMin: absoluteMin,
+      priceMax: absoluteMax,
+    });
 
   const range = absoluteMax - absoluteMin || 1;
   const minPct = ((values.priceMin - absoluteMin) / range) * 100;
   const maxPct = ((values.priceMax - absoluteMin) / range) * 100;
 
   return (
-    <div className={clsx("bg-surface border border-border rounded-lg p-4", className)}>
+    <div
+      className={clsx(
+        "bg-surface border border-border rounded-lg p-4",
+        className,
+      )}
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm font-bold text-ink">Filters</p>
@@ -147,13 +159,17 @@ export default function FilterPanel({
             step={0.25}
             value={values.priceMin}
             onChange={(e) => {
-              const v = Math.min(Number(e.target.value), values.priceMax - 0.25);
+              const v = Math.min(
+                Number(e.target.value),
+                values.priceMax - 0.25,
+              );
               set({ priceMin: parseFloat(v.toFixed(2)) });
             }}
             className="price-range-input"
             aria-label="Minimum price"
           />
           {/* Max thumb */}
+          {/* Todo: implement throttle */}
           <input
             type="range"
             min={absoluteMin}
@@ -161,7 +177,10 @@ export default function FilterPanel({
             step={0.25}
             value={values.priceMax}
             onChange={(e) => {
-              const v = Math.max(Number(e.target.value), values.priceMin + 0.25);
+              const v = Math.max(
+                Number(e.target.value),
+                values.priceMin + 0.25,
+              );
               set({ priceMax: parseFloat(v.toFixed(2)) });
             }}
             className="price-range-input"
