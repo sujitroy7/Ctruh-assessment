@@ -22,3 +22,7 @@ export interface ApiErrorResponse {
 }
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+export interface IdempotencyKey {
+  idempotency_key?: string;
+}

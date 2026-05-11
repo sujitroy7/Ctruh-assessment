@@ -43,11 +43,7 @@ export default function ProductCard({
     items.find((item) => item.color.toLowerCase() === selectedColor) ??
     items[0];
 
-  const image = "/product/tshirt-1.jpg";
-  // const image =
-  //   selectedItem?.images[0] ??
-  //   activeItems.find((item) => item.images.length > 0)?.images[0] ??
-  //   "";
+  const image = selectedItem?.images?.[0];
   const displayPrice =
     selectedItem?.price ??
     (items.length > 0 ? Math.min(...items.map((item) => item.price)) : null);

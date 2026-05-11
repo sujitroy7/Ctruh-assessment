@@ -4,8 +4,34 @@ import {
   PaginatedResponse,
   PaginationReqeustParams,
 } from "@/types/api";
-import { Product, ProductItem, ProductType } from "@/types/products";
+import { Product, ProductType } from "@/types/products";
 import api from ".";
+
+interface ProductItemPayload {
+  idempotency_key?: string;
+  gender: string;
+  color: string;
+  price: number;
+  stock: number;
+  images: string[];
+}
+
+export interface CreateProductPayload extends IdempotencyKey {
+  name: string;
+  type: string;
+  items: ProductItemPayload[];
+}
+
+type UpdateItemEntry =
+  | { id: string; _delete: true }
+  | { id: string; gender?: string; color?: string; price?: number; stock?: number; images?: string[] }
+  | ProductItemPayload;
+
+export interface UpdateProductPayload {
+  name?: string;
+  type?: string;
+  items?: UpdateItemEntry[];
+}
 
 // ----- GET PRODUCT TYPES -----
 type GetProductTypesResponse = ApiResponse<ProductType[]>;
@@ -56,7 +82,7 @@ export const getProductById = async (id: string) => {
 
 // ----- CREATE NEW PRODUCT -----
 type CreateProductResponse = ApiResponse<Product>;
-export const createProduct = async (data: Product & IdempotencyKey) => {
+export const createProduct = async (data: CreateProductPayload) => {
   const response = await api.post<CreateProductResponse>("/products", data);
 
   return response.data;
@@ -64,8 +90,8 @@ export const createProduct = async (data: Product & IdempotencyKey) => {
 
 // ----- UPDATE PRODUCT BY ID -----
 type UpdateProductResponse = ApiResponse<Product>;
-export const updateProduct = async (id: string, data: Product) => {
-  const response = await api.put<UpdateProductResponse>(
+export const updateProduct = async (id: string, data: UpdateProductPayload) => {
+  const response = await api.patch<UpdateProductResponse>(
     `/products/${id}`,
     data,
   );

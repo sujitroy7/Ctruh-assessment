@@ -2,12 +2,15 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, Plus, Trash2, X } from "lucide-react";
 import clsx from "clsx";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import RadioButton, { RadioGroup } from "@/components/ui/RadioButton";
 import { Gender } from "@/types/products";
+import { createProduct, updateProduct } from "@/lib/api/products";
+import { uploadImage } from "@/lib/api/upload";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -259,6 +262,7 @@ export default function ProductForm({
   initialData,
 }: ProductFormProps) {
   const isUpdate = formType === "update";
+  const router = useRouter();
 
   const [form, setForm] = useState<ProductForm>(() => {
     if (initialData) {
@@ -276,6 +280,7 @@ export default function ProductForm({
   });
 
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function updateField<K extends keyof ProductForm>(
     key: K,
@@ -337,15 +342,78 @@ export default function ProductForm({
     }));
   }
 
+  async function resolveItemImages(item: ItemForm): Promise<string[]> {
+    const existingUrls = item.previewUrls.filter((u) => !u.startsWith("blob:"));
+    const uploadedUrls = await Promise.all(item.images.map(uploadImage));
+    return [...existingUrls, ...uploadedUrls];
+  }
+
   async function handleSave() {
     setSaving(true);
-    if (isUpdate) {
-      // TODO: PATCH /api/products/:id
-    } else {
-      // TODO: POST /api/products
+    setError(null);
+    try {
+      const itemsWithImages = await Promise.all(
+        form.items.map(async (item) => ({
+          ...item,
+          resolvedImages: await resolveItemImages(item),
+        })),
+      );
+
+      if (isUpdate && initialData) {
+        const originalIds = new Set(initialData.items.map((i) => i._id));
+        const currentIds = new Set(form.items.map((i) => i.id));
+
+        const deletedEntries = initialData.items
+          .filter((i) => !currentIds.has(i._id))
+          .map((i) => ({ id: i._id, _delete: true as const }));
+
+        const upsertEntries = itemsWithImages.map((item) =>
+          originalIds.has(item.id)
+            ? {
+                id: item.id,
+                gender: item.gender,
+                color: item.color,
+                price: Number(item.price),
+                stock: Number(item.stock),
+                images: item.resolvedImages,
+              }
+            : {
+                gender: item.gender,
+                color: item.color,
+                price: Number(item.price),
+                stock: Number(item.stock),
+                images: item.resolvedImages,
+              },
+        );
+
+        const res = await updateProduct(initialData._id, {
+          name: form.name,
+          type: form.type,
+          items: [...deletedEntries, ...upsertEntries],
+        });
+        if (!res.success) { setError(res.message); return; }
+      } else {
+        const res = await createProduct({
+          idempotency_key: crypto.randomUUID(),
+          name: form.name,
+          type: form.type,
+          items: itemsWithImages.map((item) => ({
+            gender: item.gender,
+            color: item.color,
+            price: Number(item.price),
+            stock: Number(item.stock),
+            images: item.resolvedImages,
+          })),
+        });
+        if (!res.success) { setError(res.message); return; }
+      }
+
+      router.push("/admin/products");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSaving(false);
     }
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
   }
 
   const title = isUpdate ? "Edit Product" : "Add Product";
@@ -463,6 +531,13 @@ export default function ProductForm({
             </Button>
           )}
         </section>
+
+        {/* ── Error ────────────────────────────────────────────────────────── */}
+        {error && (
+          <p className="rounded-md bg-error-50 border border-error-200 text-error-700 px-4 py-3 text-sm">
+            {error}
+          </p>
+        )}
 
         {/* ── Bottom save ──────────────────────────────────────────────────── */}
         <div className="flex items-center justify-end gap-3 pb-4">
