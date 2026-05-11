@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   CreateProductBodySchema,
   CreateProductItemBodySchema,
+  ProductFiltersSchema,
   ProductListQuerySchema,
   ProductListSchema,
   ProductSchema,
@@ -13,6 +14,7 @@ import {
   productsRegistry,
 } from "./product.schema";
 import {
+  listProductFilters,
   listProductTypes,
   listProducts,
   getProduct,
@@ -51,6 +53,21 @@ productsRegistry.registerPath({
   },
 });
 router.get("/types", listProductTypes);
+
+// ======================================================
+// ROUTE: GET PRODUCT FILTERS
+// ======================================================
+productsRegistry.registerPath({
+  method: "get",
+  path: "/products/filters",
+  summary: "Get available product filter options",
+  description: "Returns distinct genders, colors, types, and the global min/max price across all active product variants. Response is cached in-memory for 1 hour.",
+  tags: ["Products"],
+  responses: {
+    200: jsonContent(apiSuccessSchema(ProductFiltersSchema), "Available filter options"),
+  },
+});
+router.get("/filters", listProductFilters);
 
 // ======================================================
 // ROUTE: GET ALL PRODUCTS

@@ -1,6 +1,56 @@
 import { FilterQuery, isValidObjectId, Types } from "mongoose";
 import { Product, IProduct, IProductItem } from "./product.model";
 import { isDuplicateKeyError } from "../../utils/mongoose";
+import { MemoryCache } from "../../utils/cache";
+
+export interface ProductFiltersData {
+  genders: string[];
+  colors: string[];
+  types: string[];
+  min_price: number | null;
+  max_price: number | null;
+}
+
+// This aggregation unwinds all product items into a flat stream before grouping,
+// so its cost scales with (products × avg items). At current data volumes this is
+// fast enough (~150–300ms), but it will become expensive beyond ~50k products.
+// Cache for 1 hour — filter options rarely change and staleness is acceptable.
+const filtersCache = new MemoryCache<ProductFiltersData>(60 * 60 * 1000);
+
+export async function getProductFilters(): Promise<ProductFiltersData> {
+  const cached = filtersCache.get();
+  if (cached) return cached;
+
+  type AggResult = ProductFiltersData;
+
+  const [result] = await Product.aggregate<AggResult>([
+    { $match: { is_deleted: false } },
+    { $unwind: "$items" },
+    { $match: { "items.is_deleted": false } },
+    {
+      $group: {
+        _id: null,
+        genders: { $addToSet: "$items.gender" },
+        colors: { $addToSet: "$items.color" },
+        types: { $addToSet: "$type" },
+        min_price: { $min: "$items.price" },
+        max_price: { $max: "$items.price" },
+      },
+    },
+    { $project: { _id: 0 } },
+  ]);
+
+  const data: ProductFiltersData = result ?? {
+    genders: [],
+    colors: [],
+    types: [],
+    min_price: null,
+    max_price: null,
+  };
+
+  filtersCache.set(data);
+  return data;
+}
 
 export interface ProductFilters {
   page: number;

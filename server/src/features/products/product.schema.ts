@@ -135,6 +135,17 @@ export const UpdateProductItemBodySchema = z.object({
   images: z.array(z.string()).optional(),
 });
 
+export const ProductFiltersSchema = productsRegistry.register(
+  "ProductFilters",
+  z.object({
+    genders: z.array(z.string()),
+    colors: z.array(z.string()),
+    types: z.array(z.string()),
+    min_price: z.number().nonnegative().nullable(),
+    max_price: z.number().nonnegative().nullable(),
+  }),
+);
+
 export const ProductListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(10).optional(),

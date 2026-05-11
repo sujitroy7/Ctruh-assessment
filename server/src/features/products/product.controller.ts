@@ -8,6 +8,7 @@ import {
   addProductItem,
   updateProductItem,
   deleteProductItem,
+  getProductFilters,
 } from "./product.service";
 import {
   CreateProductBodySchema,
@@ -17,6 +18,14 @@ import {
   PRODUCT_TYPES,
 } from "./product.schema";
 import { sendSuccess, sendError, sendValidationError } from "../../utils/response";
+
+export async function listProductFilters(_req: Request, res: Response, next: NextFunction) {
+  try {
+    sendSuccess(res, await getProductFilters());
+  } catch (err) {
+    next(err);
+  }
+}
 
 export function listProductTypes(_req: Request, res: Response) {
   sendSuccess(res, PRODUCT_TYPES);
