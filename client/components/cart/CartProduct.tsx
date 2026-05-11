@@ -21,7 +21,7 @@ export default function CartProduct({
       {/* Product Image */}
       <div className="shrink-0">
         <div className="relative w-full sm:w-20 md:w-24 h-32 sm:h-24 md:h-32 rounded-lg bg-neutral-100 overflow-hidden">
-          {/* {item.image ? (
+          {item.image ? (
             <Image
               src={item.image}
               alt={item.name}
@@ -33,7 +33,7 @@ export default function CartProduct({
             <div className="w-full h-full flex items-center justify-center text-ink-muted">
               <ShoppingBag className="w-8 h-8 sm:w-6 sm:h-6" />
             </div>
-          )} */}
+          )}
         </div>
       </div>
 
