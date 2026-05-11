@@ -3,21 +3,25 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Menu, X } from "lucide-react";
 import clsx from "clsx";
+import { useCartStore, selectTotalCount } from "@/lib/store/cart";
 
 function NavItem({
   href,
   children,
   className,
+  onClick,
 }: {
   href: string;
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={clsx(
         "text-sm text-ink-soft hover:text-ink transition-colors",
         className,
@@ -30,66 +34,58 @@ function NavItem({
 
 export default function Navbar() {
   const { data: session, status } = useSession();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const loading = status === "loading";
+  const cartCount = useCartStore(selectTotalCount);
+
+  function closeAll() {
+    setDropdownOpen(false);
+    setMobileOpen(false);
+  }
 
   return (
-    <nav className="bg-white border-b border-gray-200 z-50 h-16">
+    <nav className="sticky top-0 z-sticky bg-surface border-b border-border">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="text-lg font-bold text-gray-900">
+        <Link href="/" className="text-lg font-bold text-ink">
           TShirt.com
         </Link>
 
-        {/* Right side */}
-        <div className="flex items-center gap-3">
+        {/* ── Desktop nav (md+) ──────────────────────────────────── */}
+        <div className="hidden md:flex items-center gap-3">
           {loading ? (
-            // Skeleton to prevent layout shift while session loads
-            <div className="h-8 w-24 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-8 w-24 bg-neutral-100 rounded-md animate-pulse" />
           ) : session ? (
-            // ── Logged in ──────────────────────────────────────────────
             <div className="flex items-center gap-3">
-              {session.user.role === "customer" && (
+              {session?.user?.role === "customer" && (
+                <NavItem href="/my-orders">My Orders</NavItem>
+              )}
+              {session?.user?.role === "owner" && (
                 <>
-                  <NavItem href="/my-orders">My Orders</NavItem>
+                  <NavItem href="/admin/orders">Orders</NavItem>
+                  <NavItem href="/admin/products">Products</NavItem>
                 </>
               )}
 
-              {session.user.role === "owner" && (
-                <>
-                  <Link
-                    href="/admin/orders"
-                    className="text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    Orders
-                  </Link>
-                  <Link
-                    href="/admin/products"
-                    className="text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    Products
-                  </Link>
-                </>
-              )}
-
-              {/* Avatar + name */}
+              {/* Avatar + dropdown */}
               <div className="relative">
                 <button
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg
-                             border border-gray-200 hover:bg-gray-50 transition-colors"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md
+                             border border-border hover:bg-neutral-50 transition-colors"
                 >
                   <div
-                    className="w-6 h-6 rounded-full bg-blue-500 flex items-center
-                                  justify-center text-white text-xs font-medium"
+                    className="w-6 h-6 rounded-full bg-primary-500 flex items-center
+                                justify-center text-ink-inverse text-xs font-medium"
                   >
-                    {session.user.name?.[0]?.toUpperCase() ?? "U"}
+                    {session?.user?.name?.[0]?.toUpperCase() ?? "U"}
                   </div>
-                  <span className="text-sm text-gray-700 hidden sm:block">
-                    {session.user.name}
+                  <span className="text-sm text-ink-soft hidden lg:block">
+                    {session?.user?.name}
                   </span>
                   <svg
-                    className="w-3 h-3 text-gray-400"
+                    className="w-3 h-3 text-ink-muted"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -103,33 +99,30 @@ export default function Navbar() {
                   </svg>
                 </button>
 
-                {/* Dropdown */}
-                {menuOpen && (
+                {dropdownOpen && (
                   <div
-                    className="absolute right-0 mt-1 w-48 bg-white rounded-xl
-                                  border border-gray-200 shadow-lg py-1 z-50"
+                    className="absolute right-0 mt-1 w-48 bg-surface rounded-lg
+                                border border-border shadow-dropdown py-1 z-dropdown"
                   >
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-xs text-gray-400">Signed in as</p>
-                      <p className="text-sm font-medium text-gray-700 truncate">
-                        {session.user.email}
+                    <div className="px-4 py-2 border-b border-border">
+                      <p className="text-xs text-ink-muted">Signed in as</p>
+                      <p className="text-sm font-medium text-ink-soft truncate">
+                        {session?.user?.email}
                       </p>
                       <span
-                        className="inline-block mt-1 px-2 py-0.5 rounded-full
-                                       text-xs font-medium
-                                       bg-blue-50 text-blue-600"
+                        className="inline-block mt-1 px-2 py-0.5 rounded-sm
+                                   text-xs font-medium bg-primary-50 text-primary-600"
                       >
-                        {session.user.role}
+                        {session?.user?.role}
                       </span>
                     </div>
-
                     <button
                       onClick={() => {
-                        setMenuOpen(false);
+                        closeAll();
                         signOut({ callbackUrl: "/login" });
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-500
-                                 hover:bg-red-50 transition-colors"
+                      className="w-full text-left px-4 py-2 text-sm text-error-500
+                                 hover:bg-error-50 transition-colors"
                     >
                       Sign out
                     </button>
@@ -138,37 +131,158 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            // ── Not logged in ──────────────────────────────────────────
-            <div className="flex items-center gap-2">
-              <Link
-                href="/login"
-                className="px-4 py-2 rounded-lg text-sm font-medium
-                           text-gray-600 border border-gray-300
-                           hover:bg-gray-50 transition-colors"
-              >
-                Sign in
-              </Link>
-            </div>
+            <Link
+              href="/login"
+              className="px-4 py-2 rounded-md text-sm font-medium
+                         text-ink-soft border border-border hover:bg-neutral-50 transition-colors"
+            >
+              Sign in
+            </Link>
           )}
 
-          {/* Cart — visible to guests and customers, hidden for owners */}
-          {!loading && (!session || session.user.role === "customer") && (
+          {/* Cart */}
+          {!loading && (!session || session?.user?.role === "customer") && (
             <Link
               href="/cart"
-              aria-label="Cart"
-              className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors"
+              aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"}
+              className="relative p-1.5 text-ink-muted hover:text-ink transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary-600 text-ink-inverse text-[10px] font-semibold leading-none px-1">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </Link>
+          )}
+        </div>
+
+        {/* ── Mobile right side (< md) ───────────────────────────── */}
+        <div className="flex md:hidden items-center gap-1">
+          {!loading && (!session || session?.user?.role === "customer") && (
+            <Link
+              href="/cart"
+              aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"}
+              className="relative p-2 text-ink-muted hover:text-ink transition-colors"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary-600 text-ink-inverse text-[10px] font-semibold leading-none px-1">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
+            </Link>
+          )}
+
+          {loading ? (
+            <div className="h-8 w-8 bg-neutral-100 rounded-md animate-pulse" />
+          ) : (
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              className="p-2 text-ink-muted hover:text-ink transition-colors"
+            >
+              {mobileOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
           )}
         </div>
       </div>
 
-      {/* Click outside to close dropdown */}
-      {menuOpen && (
+      {/* ── Mobile menu panel ──────────────────────────────────────── */}
+      {mobileOpen && (
+        <div className="md:hidden border-t border-border bg-surface">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1">
+            {session ? (
+              <>
+                {/* User info row */}
+                <div className="flex items-center gap-3 px-3 py-2 mb-1">
+                  <div
+                    className="w-8 h-8 rounded-full bg-primary-500 flex items-center
+                                justify-center text-ink-inverse text-sm font-medium shrink-0"
+                  >
+                    {session?.user?.name?.[0]?.toUpperCase() ?? "U"}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-ink truncate">
+                      {session?.user?.name}
+                    </p>
+                    <p className="text-xs text-ink-muted truncate">
+                      {session?.user?.email}
+                    </p>
+                  </div>
+                  <span
+                    className="ml-auto shrink-0 px-2 py-0.5 rounded-sm
+                               text-xs font-medium bg-primary-50 text-primary-600"
+                  >
+                    {session?.user?.role}
+                  </span>
+                </div>
+
+                {/* Nav links */}
+                {session?.user?.role === "customer" && (
+                  <NavItem
+                    href="/my-orders"
+                    onClick={() => setMobileOpen(false)}
+                    className="px-3 py-2 rounded-md hover:bg-neutral-50 block"
+                  >
+                    My Orders
+                  </NavItem>
+                )}
+                {session?.user?.role === "owner" && (
+                  <>
+                    <NavItem
+                      href="/admin/orders"
+                      onClick={() => setMobileOpen(false)}
+                      className="px-3 py-2 rounded-md hover:bg-neutral-50 block"
+                    >
+                      Orders
+                    </NavItem>
+                    <NavItem
+                      href="/admin/products"
+                      onClick={() => setMobileOpen(false)}
+                      className="px-3 py-2 rounded-md hover:bg-neutral-50 block"
+                    >
+                      Products
+                    </NavItem>
+                  </>
+                )}
+
+                <div className="border-t border-border mt-1 pt-1">
+                  <button
+                    onClick={() => {
+                      closeAll();
+                      signOut({ callbackUrl: "/login" });
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md text-sm
+                               text-error-500 hover:bg-error-50 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="px-3 py-2 rounded-md text-sm font-medium text-center
+                           text-ink-soft border border-border hover:bg-neutral-50 transition-colors"
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Click-outside overlay for desktop dropdown */}
+      {dropdownOpen && (
         <div
-          className="fixed inset-0 z-40"
-          onClick={() => setMenuOpen(false)}
+          className="fixed inset-0 z-raised"
+          onClick={() => setDropdownOpen(false)}
         />
       )}
     </nav>
