@@ -13,22 +13,18 @@ import CartProduct from "@/components/cart/CartProduct";
 
 export default function CartPage() {
   const [isMounted, setIsMounted] = useState(false);
-  const byId = useCartStore((s) => s.byId);
-  const allIds = useCartStore((s) => s.allIds);
+  const items = useCartStore((s) => s.items);
   const removeItem = useCartStore((s) => s.removeItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
-
-  // Sync allIds from byId keys if they're out of sync
-  const itemIds = allIds.length > 0 ? allIds : Object.keys(byId);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const totalPrice = selectTotalPrice({ byId });
-  const totalCount = selectTotalCount({ byId });
+  const totalPrice = selectTotalPrice({ items });
+  const totalCount = selectTotalCount({ items });
 
-  if (itemIds.length === 0 && isMounted) {
+  if (items.length === 0 && isMounted) {
     return (
       <main className="min-h-screen bg-canvas px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         <div className="max-w-6xl mx-auto">
@@ -58,7 +54,6 @@ export default function CartPage() {
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight text-ink mb-6 sm:mb-8">
           Your Cart
         </h1>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Items Section */}
           <div className="md:col-span-2 space-y-3 sm:space-y-4">
@@ -68,27 +63,21 @@ export default function CartPage() {
                   Loading cart...
                 </div>
               </div>
-            ) : itemIds.length === 0 ? (
+            ) : items.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 rounded-lg border border-border bg-surface">
                 <ShoppingBag className="w-10 h-10 text-ink-muted mb-3" />
                 <p className="text-ink-soft">Your cart is empty</p>
               </div>
             ) : (
-              itemIds.map((itemId) => {
-                const item = byId[itemId];
-                if (!item) return null;
-
-                return (
-                  <CartProduct
-                    key={itemId}
-                    item={item}
-                    onRemove={removeItem}
-                    onQuantityChange={updateQuantity}
-                  />
-                );
-              })
+              items.map((item) => (
+                <CartProduct
+                  key={item.productItemId}
+                  item={item}
+                  onRemove={removeItem}
+                  onQuantityChange={updateQuantity}
+                />
+              ))
             )}
-            {JSON.stringify(allIds)}
           </div>
 
           {/* Summary Section */}

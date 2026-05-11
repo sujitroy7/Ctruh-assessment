@@ -114,6 +114,7 @@ export default async function ProductDetailsPage({
 }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
+  // @ts-ignore
   const isOwner = session?.user?.role === "owner";
   const product = products[id];
 

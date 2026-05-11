@@ -66,6 +66,7 @@ export default function AdminLoginPage() {
       const { getSession } = await import("next-auth/react");
       const session = await getSession();
 
+      // @ts-ignore
       if (session?.user?.role !== "owner") {
         const { signOut } = await import("next-auth/react");
         await signOut({ redirect: false });

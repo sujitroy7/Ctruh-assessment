@@ -12,13 +12,19 @@ const PAGE_SIZE = 10;
 export default function AdminProducts() {
   const [page, setPage] = useState(1);
 
-  const { data: response, isLoading, error } = useQuery({
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["products", page],
     queryFn: () => getAllProducts({ page, limit: PAGE_SIZE }),
   });
 
+  // @ts-ignore
   const total = response?.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  // @ts-ignore
   const pageProducts = response?.data?.data ?? [];
 
   function handleAdd() {
@@ -32,7 +38,9 @@ export default function AdminProducts() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-ink">Products</h1>
-          <p className="text-sm text-ink-muted mt-0.5">{total} product{total !== 1 ? "s" : ""} total</p>
+          <p className="text-sm text-ink-muted mt-0.5">
+            {total} product{total !== 1 ? "s" : ""} total
+          </p>
         </div>
         <Button variant="primary" leftIcon={<Plus />} onClick={handleAdd}>
           Add Product
@@ -45,10 +53,14 @@ export default function AdminProducts() {
           <thead>
             <tr className="bg-neutral-100 border-b border-border text-left">
               <th className="px-4 py-3 w-10" />
-              <th className="px-4 py-3 font-semibold text-ink-soft">Product Name</th>
+              <th className="px-4 py-3 font-semibold text-ink-soft">
+                Product Name
+              </th>
               <th className="px-4 py-3 font-semibold text-ink-soft">Type</th>
               <th className="px-4 py-3 font-semibold text-ink-soft">Items</th>
-              <th className="px-4 py-3 font-semibold text-ink-soft">Total Stock</th>
+              <th className="px-4 py-3 font-semibold text-ink-soft">
+                Total Stock
+              </th>
               <th className="px-4 py-3 font-semibold text-ink-soft">Actions</th>
             </tr>
           </thead>
@@ -61,22 +73,25 @@ export default function AdminProducts() {
               </tr>
             ) : isLoading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-ink-muted">
+                <td
+                  colSpan={6}
+                  className="px-6 py-12 text-center text-ink-muted"
+                >
                   Loading products...
                 </td>
               </tr>
             ) : pageProducts.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-ink-muted">
+                <td
+                  colSpan={6}
+                  className="px-6 py-12 text-center text-ink-muted"
+                >
                   No products found.
                 </td>
               </tr>
             ) : (
-              pageProducts.map((product) => (
-                <ProductRow
-                  key={product.id}
-                  product={product}
-                />
+              pageProducts.map((product: any) => (
+                <ProductRow key={product.id} product={product} />
               ))
             )}
           </tbody>

@@ -7,6 +7,7 @@ import clsx from "clsx";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import RadioButton, { RadioGroup } from "@/components/ui/RadioButton";
+import { Gender } from "@/types/products";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

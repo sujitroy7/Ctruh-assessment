@@ -13,8 +13,7 @@ export interface CartItem {
 }
 
 interface CartState {
-  byId: Record<string, CartItem>;
-  allIds: string[];
+  items: CartItem[];
   addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
   removeItem: (productItemId: string) => void;
   updateQuantity: (productItemId: string, quantity: number) => void;
@@ -24,43 +23,31 @@ interface CartState {
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
-      byId: {},
-      allIds: [],
+      items: [],
 
       addItem: (input) => {
         const qty = input.quantity ?? 1;
         set((state) => {
-          const existing = state.byId[input.productItemId];
+          const existing = state.items.find(
+            (i) => i.productItemId === input.productItemId,
+          );
           if (existing) {
             return {
-              byId: {
-                ...state.byId,
-                [input.productItemId]: {
-                  ...existing,
-                  quantity: existing.quantity + qty,
-                },
-              },
+              items: state.items.map((i) =>
+                i.productItemId === input.productItemId
+                  ? { ...i, quantity: i.quantity + qty }
+                  : i,
+              ),
             };
           }
-          return {
-            byId: {
-              ...state.byId,
-              [input.productItemId]: { ...input, quantity: qty },
-            },
-            allIds: [...state.allIds, input.productItemId],
-          };
+          return { items: [...state.items, { ...input, quantity: qty }] };
         });
       },
 
       removeItem: (productItemId) => {
-        set((state) => {
-          const next = { ...state.byId };
-          delete next[productItemId];
-          return {
-            byId: next,
-            allIds: state.allIds.filter((id) => id !== productItemId),
-          };
-        });
+        set((state) => ({
+          items: state.items.filter((i) => i.productItemId !== productItemId),
+        }));
       },
 
       updateQuantity: (productItemId, quantity) => {
@@ -69,28 +56,24 @@ export const useCartStore = create<CartState>()(
           return;
         }
         set((state) => ({
-          byId: {
-            ...state.byId,
-            [productItemId]: { ...state.byId[productItemId], quantity },
-          },
+          items: state.items.map((i) =>
+            i.productItemId === productItemId ? { ...i, quantity } : i,
+          ),
         }));
       },
 
-      clearCart: () => set({ byId: {}, allIds: [] }),
+      clearCart: () => set({ items: [] }),
     }),
     {
       name: "cart-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ byId: state.byId, allIds: state.allIds }),
+      partialize: (state) => ({ items: state.items }),
     },
   ),
 );
 
-export const selectTotalCount = (state: Pick<CartState, "byId">) =>
-  Object.values(state.byId).reduce((sum, item) => sum + item.quantity, 0);
+export const selectTotalCount = (state: Pick<CartState, "items">) =>
+  state.items.reduce((sum, item) => sum + item.quantity, 0);
 
-export const selectTotalPrice = (state: Pick<CartState, "byId">) =>
-  Object.values(state.byId).reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
+export const selectTotalPrice = (state: Pick<CartState, "items">) =>
+  state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
