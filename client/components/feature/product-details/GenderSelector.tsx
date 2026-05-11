@@ -23,7 +23,7 @@ export default function GenderSelector({ genders, defaultGender }: GenderSelecto
           aria-pressed={selectedGender === g}
           onClick={() => setSelectedGender(g)}
           className={clsx(
-            "px-3 py-1 rounded-md text-sm font-medium transition-all capitalize",
+            "px-3 py-1.5 rounded-md text-sm font-medium transition-all capitalize",
             selectedGender === g
               ? "bg-ink text-ink-inverse"
               : "bg-neutral-100 text-ink-muted hover:bg-neutral-200",

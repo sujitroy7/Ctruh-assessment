@@ -3,15 +3,8 @@
 import { ShoppingCart } from "lucide-react";
 import { useQueryState, parseAsString } from "nuqs";
 import { useCartStore } from "@/lib/store/cart";
-
-interface ProductItem {
-  id: string;
-  gender: string;
-  color: string;
-  price: number;
-  stock: number;
-  images: string[];
-}
+import Button from "@/components/ui/Button";
+import type { ProductItem } from "@/types/products";
 
 interface AddToCartButtonProps {
   productId: string;
@@ -50,25 +43,26 @@ export default function AddToCartButton({
   function handleAddToCart() {
     if (!selectedItem || !inStock) return;
     addItem({
-      productItemId: selectedItem.id,
+      productItemId: selectedItem._id,
       productId,
       name: productName,
       color: selectedItem.color,
       gender: selectedItem.gender,
       price: selectedItem.price,
-      image: selectedItem.images[0],
+      image: selectedItem.images?.[0],
     });
   }
 
   return (
-    <button
+    <Button
       type="button"
+      fullWidth
+      size="lg"
       onClick={handleAddToCart}
       disabled={!inStock}
-      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-ink text-ink-inverse text-sm font-semibold hover:bg-ink/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
+      leftIcon={<ShoppingCart />}
     >
-      <ShoppingCart className="w-4 h-4" />
       {inStock ? "Add to Cart" : "Out of Stock"}
-    </button>
+    </Button>
   );
 }
