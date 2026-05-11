@@ -234,13 +234,6 @@ export default function Navbar() {
                 {session?.user?.role === "owner" && (
                   <>
                     <NavItem
-                      href="/admin/orders"
-                      onClick={() => setMobileOpen(false)}
-                      className="px-3 py-2 rounded-md hover:bg-neutral-50 block"
-                    >
-                      Orders
-                    </NavItem>
-                    <NavItem
                       href="/admin/products"
                       onClick={() => setMobileOpen(false)}
                       className="px-3 py-2 rounded-md hover:bg-neutral-50 block"
