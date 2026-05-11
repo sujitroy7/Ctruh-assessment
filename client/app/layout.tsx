@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import SessionProvider from "@/components/auth/SessionProvider";
+import Provider from "@/components/Providers";
 import Navbar from "@/components/layout/Navbar";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -19,18 +17,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="[scrollbar-gutter:stable]">
-      <SessionProvider>
-        <NuqsAdapter>
-          <body className={geist.className}>
-            <div className="grid grid-rows-[64px_1fr] min-h-svh">
-              <Navbar />
-              <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-                {children}
-              </main>
-            </div>
-          </body>
-        </NuqsAdapter>
-      </SessionProvider>
+      <Provider>
+        <body className={geist.className}>
+          <div className="grid grid-rows-[64px_1fr] min-h-svh">
+            <Navbar />
+            <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+              {children}
+            </main>
+          </div>
+        </body>
+      </Provider>
     </html>
   );
 }
