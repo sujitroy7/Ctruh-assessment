@@ -1,8 +1,8 @@
 <div align="center">
 
-# Ctruh Assessment
+# Ctruh Assessment — T-Shirt Store
 
-**A full-stack web application built for the Ctruh technical assessment.**
+**A full-stack e-commerce application built for the Ctruh technical assessment.**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
@@ -13,69 +13,122 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-[Live Demo](https://google.com) · [Report Bug](https://github.com) · [API Health](http://localhost:8000/health)
-
 </div>
 
 ---
 
-## Hey, let me walk you through this
+## A honest note before you dive in
 
-So, I got the assessment brief and instead of just slapping together something that *technically works*, I wanted to set it up the right way from the start — the kind of foundation you'd actually build on in production.
+I put a lot of effort into this assignment and got most of the way there. The **backend is fully built** — clean feature-based architecture, typed all the way through, OpenAPI spec auto-generated, rate limiting, Zod validation, soft deletes, the works. I'm genuinely happy with how it turned out.
 
-Here's what I went with:
-
-- **Next.js 16 + React 19** on the frontend — latest and greatest, with TypeScript because, well, I sleep better at night
-- **Express + TypeScript** on the backend — typed all the way down, no surprises
-- **MongoDB** with Mongoose — flexible document store, great fit for the domain
-- **Tailwind CSS v4** — utility-first, zero fighting the cascade
-- **Docker Compose** to tie it all together — one command and you're running the full stack locally, no "works on my machine" drama
-
-The whole repo is a monorepo with `client/` and `server/` living side by side, and a `docker-compose.yml` at the root that orchestrates everything including the database.
+On the **frontend**, I ran into time constraints. The core customer flows — browsing, searching, filtering, cart management, checkout — are all working. The admin side (product inventory, add/edit product) is functional too. What I didn't get to polish is the UI to the level I originally had in mind. Some rough edges exist. I made the most of the time I had, and everything that matters from the requirements spec is covered.
 
 ---
 
-## Stack at a glance
+## Stack
 
-| Layer | Tech | Port |
-|-------|------|------|
-| Frontend | Next.js 16, React 19, Tailwind CSS 4 | `3000` |
-| Backend | Node.js 20, Express 4, TypeScript | `8000` |
-| Database | MongoDB 7 | `27017` |
+| Layer    | Tech                                 | Port    |
+| -------- | ------------------------------------ | ------- |
+| Frontend | Next.js 16, React 19, Tailwind CSS 4 | `3000`  |
+| Backend  | Node.js 20, Express 4, TypeScript    | `8000`  |
+| Database | MongoDB 7                            | `27017` |
 
 ---
 
-## Prerequisites
+## Screenshots
 
-Before you run anything, make sure you have these installed:
+**Customer Login**
 
-- **Node.js** `v20.20.2` — use [nvm](https://github.com/nvm-sh/nvm) and run `nvm use` in the root (`.nvmrc` is already there)
-- **npm** — comes with Node
-- **Docker + Docker Compose** — for the containerized setup ([install Docker](https://docs.docker.com/get-docker/))
-- **MongoDB** — only needed if running locally without Docker
+![User Login](./client/assets/user-login.png)
+
+**Product Listing — Search & Filter**
+
+![Product Page](./client/assets/product-page.png)
+
+**Shopping Cart**
+
+![Cart](./client/assets/product-cart.png)
+
+**Checkout**
+
+![Checkout](./client/assets/checkout.png)
+
+**Admin Login**
+
+![Admin Login](./client/assets/admin-login.png)
+
+**Admin — Product Inventory**
+
+![Product Inventory](./client/assets/product-inventory.png)
+
+**Admin — Edit Product**
+
+![Manage Product](./client/assets/manage-product.png)
+
+---
+
+## What was built
+
+### Customer-facing
+
+- **Product listing page** — browse all t-shirts with image, name, type, gender, and price on each card
+- **Free-text search** — searches across name, type, and gender (e.g. "green polo")
+- **Filters** — gender (radio), colour (single-select checkbox), type (single-select checkbox), and price range (slider); filters and search work together and both persist in the URL so they survive navigation
+- **Product detail page** — full product view with colour and gender selector
+- **Cart** — add items, increase/decrease quantity, remove items, running total displayed; cart state is synced to the backend and persisted across pages
+- **Checkout** — shipping address form with order placement
+- **My Orders** — order history for logged-in customers
+- **User auth** — manual registration and login, JWT-backed, protected routes
+
+### Admin-facing
+
+- **Product inventory** — paginated table of all products with expandable variant rows (gender, colour, price, stock, images)
+- **Add / Edit product** — full product form with support for multiple gender + colour variants, stock management, and image upload per variant
+- **Owner auth** — separate admin login, role-protected routes
+
+### Backend
+
+The server is built with a strict **feature-based module structure** — each domain (auth, products, cart, orders, customers, owner, upload) owns its own schemas, model, service, controller, and router. No shared spaghetti.
+
+Notable extras beyond the spec:
+
+- **OpenAPI 3.0 spec** auto-generated at startup from Zod schemas — browse it at `http://localhost:8000/docs` or grab the raw JSON from `http://localhost:8000/openapi.json`
+- **Rate limiting** on all API routes (stricter on auth endpoints)
+- **Soft deletes** — nothing is ever hard-deleted from the database
+- **Zod validation** on all request bodies with typed error responses
+- **Mongoose connection pooling** configured from the start
 
 ---
 
 ## Running the project
 
-### Option 1 — Docker (recommended, easiest)
-
-This spins up the client, server, and MongoDB all at once. Zero configuration needed.
-
 ```bash
 # Clone the repo
-git clone <repo-url>
+git clone https://github.com/sujitroy7/Ctruh-assessment.git
 cd Ctruh-assessment
 
 # Copy env files
 cp server/.env.example server/.env
 cp client/.env.example client/.env
 
-# Fire everything up
+# Start everything
 docker compose up --build
 ```
 
-That's it. Visit [http://localhost:3000](http://localhost:3000) for the app and [http://localhost:8000/health](http://localhost:8000/health) to confirm the API is alive.
+- App: [http://localhost:3000](http://localhost:3000)
+- API health: [http://localhost:8000/health](http://localhost:8000/health)
+- API docs (Swagger): [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### Seed the database (optional but recommended)
+
+A MongoDB export is included so you can start with real product data instead of an empty store. Once the containers are running:
+
+```bash
+# Extract the export, copy it into the running container, and restore it
+unzip mongodb-export.zip && \
+docker cp ./mongodb-export ctruh-mongo:/mongodb-export && \
+docker exec -it ctruh-mongo mongorestore --drop /mongodb-export
+```
 
 To stop:
 
@@ -88,34 +141,6 @@ To wipe the database volume too:
 ```bash
 docker compose down -v
 ```
-
----
-
-### Option 2 — Running locally (manual setup)
-
-If you'd rather run things natively without Docker, you'll need MongoDB running locally first.
-
-**1. Server**
-
-```bash
-cd server
-cp .env.example .env        # edit MONGO_URI if your MongoDB is on a different port
-npm install
-npm run dev                 # starts with hot reload via tsc-watch
-```
-
-Server runs at [http://localhost:8000](http://localhost:8000).
-
-**2. Client** (in a separate terminal)
-
-```bash
-cd client
-cp .env.example .env        # set NEXT_PUBLIC_API_URL=http://localhost:8000
-npm install
-npm run dev
-```
-
-Client runs at [http://localhost:3000](http://localhost:3000).
 
 ---
 
@@ -135,7 +160,7 @@ NODE_ENV=development
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-When using Docker Compose, these are injected automatically — you only need to set them manually for the local setup.
+When using Docker Compose, these are injected automatically.
 
 ---
 
@@ -143,29 +168,65 @@ When using Docker Compose, these are injected automatically — you only need to
 
 ```
 Ctruh-assessment/
-├── client/              # Next.js frontend
-│   ├── app/             # App Router pages and layouts
+├── client/                  # Next.js frontend
+│   ├── app/                 # App Router — pages and layouts
+│   ├── components/          # UI and feature components
+│   ├── lib/                 # API clients, stores, hooks
+│   ├── types/               # Shared TypeScript types
 │   ├── Dockerfile
 │   └── .env.example
-├── server/              # Express backend
-│   ├── src/
-│   │   └── index.ts     # Entry point
-│   ├── Dockerfile
-│   └── .env.example
-├── docker-compose.yml   # Orchestrates all three services
-└── .nvmrc               # Node version pin (20.20.2)
+├── server/                  # Express backend
+│   └── src/
+│       ├── features/        # Feature modules (auth, products, cart, orders…)
+│       ├── config/          # Env validation
+│       ├── middleware/       # Rate limiter
+│       ├── openapi/         # Spec generator
+│       └── index.ts         # Entry point
+├── docker-compose.yml
+└── .nvmrc
 ```
 
 ---
 
-## Live Demo
+## Requirements coverage summary
 
-The app is deployed and accessible here: **[Visit Live App](https://google.com)**
+| Requirement                                         | Status   | Notes                                          |
+| --------------------------------------------------- | -------- | ---------------------------------------------- |
+| Product listing page                                | Done     | Search + filter + pagination                   |
+| Cards with image, type, gender, name, price         | Done     |                                                |
+| Free-text search (name, type, gender)               | Done     | URL-persisted                                  |
+| Filter — gender (radio)                             | Done     |                                                |
+| Filter — colour (single-select checkbox)            | Done     |                                                |
+| Filter — price range (slider)                       | Done     |                                                |
+| Filter — type (single-select checkbox)              | Done     |                                                |
+| Filters + search work together                      | Done     | Combined query sent to API                     |
+| Filters/search/cart persist between pages           | Done     | URL params (nuqs) + Zustand store              |
+| View t-shirts added by user                         | Done     | Admin inventory page                           |
+| Add t-shirts to sell online                         | Done     | Admin add/edit product with variants           |
+| Add to cart                                         | Done     | With stock validation                          |
+| Cart icon navigation                                | Done     |                                                |
+| Increase / decrease quantity in cart                | Done     |                                                |
+| Total amount in cart                                | Done     |                                                |
+| Error when quantity exceeds stock                   | Done     | Backend enforces, frontend surfaces error      |
+| User registration / login                           | Done     | Manual, JWT-backed                             |
+| Backend — user login                                | Done     | `POST /api/auth/login`                         |
+| Backend — user register                             | Done     | `POST /api/auth/register`                      |
+| Backend — get products (filter, search, pagination) | Done     | `GET /api/products`                            |
+| Backend — get product by id                         | Done     | `GET /api/products/:id`                        |
+| Backend — add product                               | Done     | `POST /api/products`                           |
+| Backend — delete product                            | Done     | `DELETE /api/products/:id` (soft delete)       |
+| Backend — get cart                                  | Done     | `GET /api/cart`                                |
+| Backend — add to cart                               | Done     | `POST /api/cart`                               |
+| Backend — delete from cart                          | Done     | `DELETE /api/cart/:itemId`                     |
+| No Bootstrap / Material UI                          | Done     | Custom components with Tailwind                |
+| React Hook Form (optional)                          | Done     | Used in the product add/edit form              |
+| Postman collection (optional)                       | Done     | Swagger UI + `/openapi.json` available instead |
+| Multi-select filters (optional)                     | Not done | Single-select as per the required spec         |
 
 ---
 
 <div align="center">
 
-Built with focus by **Sujit Roy**
+Built by **Sujit Roy**
 
 </div>
