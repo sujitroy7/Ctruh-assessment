@@ -8,7 +8,7 @@ import Button from "@/components/ui/Button";
 import ProductItemsTable, { ProductItem } from "./ProductItemsTable";
 
 export interface Product {
-  id: string;
+  _id: string;
   name: string;
   type: string;
   is_deleted: boolean;
@@ -61,7 +61,9 @@ export default function ProductRow({ product }: ProductRowProps) {
         </td>
 
         {/* Type */}
-        <td className="px-4 py-3 text-ink-soft text-sm capitalize">{product.type}</td>
+        <td className="px-4 py-3 text-ink-soft text-sm capitalize">
+          {product.type}
+        </td>
 
         {/* Item count */}
         <td className="px-4 py-3 text-ink-soft text-sm">{visibleItemCount}</td>
@@ -74,8 +76,8 @@ export default function ProductRow({ product }: ProductRowProps) {
               totalStock === 0
                 ? "bg-error-50 text-error-700"
                 : totalStock <= 10
-                ? "bg-warning-50 text-warning-700"
-                : "bg-success-50 text-success-700",
+                  ? "bg-warning-50 text-warning-700"
+                  : "bg-success-50 text-success-700",
             )}
           >
             {totalStock}
@@ -85,7 +87,7 @@ export default function ProductRow({ product }: ProductRowProps) {
         {/* Actions */}
         <td className="px-4 py-3">
           <div className="flex items-center gap-2">
-            <Link href={`/admin/products/${product.id}`}>
+            <Link href={`/admin/products/${product._id}`}>
               <Button variant="secondary" size="sm" leftIcon={<Pencil />}>
                 Edit
               </Button>

@@ -12,7 +12,6 @@ export interface ProductItem {
   price: number;
   stock: number;
   images?: string[];
-  is_deleted?: boolean;
 }
 
 export interface Product {
@@ -20,5 +19,4 @@ export interface Product {
   name: string;
   type: ProductType;
   items: ProductItem[];
-  is_deleted?: boolean;
 }

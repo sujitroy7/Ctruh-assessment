@@ -1,7 +1,7 @@
 "use client";
 
 export interface ProductItem {
-  id: string;
+  _id: string;
   gender: string;
   color: string;
   price: number;

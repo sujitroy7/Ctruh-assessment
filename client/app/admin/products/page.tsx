@@ -27,11 +27,6 @@ export default function AdminProducts() {
   // @ts-ignore
   const pageProducts = response?.data?.data ?? [];
 
-  function handleAdd() {
-    // TODO: open add-product modal / navigate to create page
-    alert("Add product — wire up your modal or route here.");
-  }
-
   return (
     <div className="min-h-screen bg-canvas px-6 py-8">
       {/* Header */}
@@ -42,7 +37,11 @@ export default function AdminProducts() {
             {total} product{total !== 1 ? "s" : ""} total
           </p>
         </div>
-        <Button variant="primary" leftIcon={<Plus />} onClick={handleAdd}>
+        <Button
+          variant="primary"
+          leftIcon={<Plus />}
+          href="/admin/products/new"
+        >
           Add Product
         </Button>
       </div>
