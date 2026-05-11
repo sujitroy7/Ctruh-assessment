@@ -63,7 +63,6 @@ export default function Navbar() {
               )}
               {session?.user?.role === "owner" && (
                 <>
-                  <NavItem href="/admin/orders">Orders</NavItem>
                   <NavItem href="/admin/products">Products</NavItem>
                 </>
               )}
