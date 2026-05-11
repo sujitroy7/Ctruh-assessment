@@ -3,19 +3,15 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
-import {
-  useCartStore,
-  selectTotalPrice,
-  selectTotalCount,
-} from "@/lib/store/cart";
+import { useCartStore, selectTotalPrice, selectTotalCount } from "@/lib/store/cart";
+import { useCartSync } from "@/lib/hooks/useCartSync";
 import Button from "@/components/ui/Button";
 import CartProduct from "@/components/cart/CartProduct";
 
 export default function CartPage() {
   const [isMounted, setIsMounted] = useState(false);
   const items = useCartStore((s) => s.items);
-  const removeItem = useCartStore((s) => s.removeItem);
-  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const { syncing, removeItem, updateQuantity } = useCartSync();
 
   useEffect(() => {
     setIsMounted(true);
@@ -57,6 +53,9 @@ export default function CartPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Items Section */}
           <div className="md:col-span-2 space-y-3 sm:space-y-4">
+            {syncing && (
+              <p className="text-xs text-ink-muted">Syncing cart…</p>
+            )}
             {!isMounted ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-pulse text-ink-muted">

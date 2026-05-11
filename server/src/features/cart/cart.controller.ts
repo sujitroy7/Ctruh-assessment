@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { getCart, addToCart, removeFromCart } from "./cart.service";
-import { AddToCartBodySchema } from "./cart.schema";
+import { getCart, addToCart, updateCartItem, removeFromCart } from "./cart.service";
+import { AddToCartBodySchema, UpdateCartItemBodySchema } from "./cart.schema";
 import { sendSuccess, sendError, sendValidationError } from "../../utils/response";
 
 export async function getCartHandler(req: Request, res: Response, next: NextFunction) {
@@ -38,6 +38,31 @@ export async function addToCartHandler(req: Request, res: Response, next: NextFu
     }
 
     sendSuccess(res, result.data, result.created ? 201 : 200);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateCartItemHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const parsed = UpdateCartItemBodySchema.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
+      return;
+    }
+
+    const result = await updateCartItem(req.user!.sub, req.params.itemId, parsed.data.item_qty);
+
+    if (result.error === "invalid_id") {
+      sendError(res, "Invalid cart item ID", 400);
+      return;
+    }
+    if (result.error === "not_found") {
+      sendError(res, `Cart item '${req.params.itemId}' not found`, 404);
+      return;
+    }
+
+    sendSuccess(res, result.data);
   } catch (err) {
     next(err);
   }

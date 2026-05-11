@@ -8,3 +8,8 @@ export type ShippingAddress = {
   country: string;
   phone: string;
 };
+
+export type Address = ShippingAddress & {
+  id: string;
+  idempotency_key: string;
+};

@@ -36,6 +36,22 @@ export async function addToCart(customerId: string, body: { product_item_id: str
   return { data: item, created: !existing };
 }
 
+export async function updateCartItem(customerId: string, cartItemId: string, item_qty: number) {
+  if (!isValidObjectId(customerId) || !isValidObjectId(cartItemId)) {
+    return { error: "invalid_id" as const };
+  }
+
+  const item = await Cart.findOneAndUpdate(
+    { _id: cartItemId, customer_id: customerId, is_deleted: false, purchased: false },
+    { $set: { item_qty } },
+    { new: true },
+  ).lean();
+
+  if (!item) return { error: "not_found" as const };
+
+  return { data: item };
+}
+
 export async function removeFromCart(customerId: string, cartItemId: string) {
   if (!isValidObjectId(customerId) || !isValidObjectId(cartItemId)) {
     return { error: "invalid_id" as const };

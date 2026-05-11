@@ -1,4 +1,4 @@
-import mongoose, { isValidObjectId } from "mongoose";
+import { isValidObjectId } from "mongoose";
 import { Cart } from "../cart/cart.model";
 import { Product } from "../products/product.model";
 import { Customer } from "../customer/customer.model";
@@ -60,16 +60,15 @@ export async function createOrder(customerId: string, body: { idempotency_key: s
   };
 
   const cartItemIds = cartItems.map((c) => c._id);
-  const session = await mongoose.startSession();
   try {
-    let created: any;
-    await session.withTransaction(async () => {
-      [created] = await Order.create(
-        [{ customer_id: customerId, items: orderItems, shipping_address, total_amount, idempotency_key: body.idempotency_key }],
-        { session },
-      );
-      await Cart.updateMany({ _id: { $in: cartItemIds } }, { $set: { purchased: true } }, { session });
+    const created = await Order.create({
+      customer_id: customerId,
+      items: orderItems,
+      shipping_address,
+      total_amount,
+      idempotency_key: body.idempotency_key,
     });
+    await Cart.updateMany({ _id: { $in: cartItemIds } }, { $set: { purchased: true } });
     return { data: created };
   } catch (err) {
     if (isDuplicateKeyError(err)) {
@@ -77,8 +76,6 @@ export async function createOrder(customerId: string, body: { idempotency_key: s
       return { data: existing! };
     }
     throw err;
-  } finally {
-    await session.endSession();
   }
 }
 

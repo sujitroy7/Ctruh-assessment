@@ -10,6 +10,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   image?: string;
+  cartItemId?: string;
 }
 
 interface CartState {
@@ -18,6 +19,7 @@ interface CartState {
   removeItem: (productItemId: string) => void;
   updateQuantity: (productItemId: string, quantity: number) => void;
   clearCart: () => void;
+  setSyncId: (productItemId: string, cartItemId: string) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -63,6 +65,14 @@ export const useCartStore = create<CartState>()(
       },
 
       clearCart: () => set({ items: [] }),
+
+      setSyncId: (productItemId, cartItemId) => {
+        set((state) => ({
+          items: state.items.map((i) =>
+            i.productItemId === productItemId ? { ...i, cartItemId } : i,
+          ),
+        }));
+      },
     }),
     {
       name: "cart-storage",

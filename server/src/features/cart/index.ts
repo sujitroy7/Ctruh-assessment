@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
-import { cartRegistry, CartItemSchema, AddToCartBodySchema } from "./cart.schema";
-import { getCartHandler, addToCartHandler, removeFromCartHandler } from "./cart.controller";
+import { cartRegistry, CartItemSchema, AddToCartBodySchema, UpdateCartItemBodySchema } from "./cart.schema";
+import { getCartHandler, addToCartHandler, updateCartItemHandler, removeFromCartHandler } from "./cart.controller";
 import { requireAuth, requireRole } from "../auth/auth.middleware";
 import {
   jsonContent,
@@ -55,6 +55,30 @@ cartRegistry.registerPath({
   },
 });
 router.post("/items", ...customerOnly, addToCartHandler);
+
+// ======================================================
+// ROUTE: UPDATE CART ITEM QUANTITY
+// ======================================================
+cartRegistry.registerPath({
+  method: "patch",
+  path: "/cart/items/{itemId}",
+  summary: "Update cart item quantity",
+  description: "Sets the quantity of a cart item to the given value.",
+  tags: ["Cart"],
+  security: [{ cookieAuth: [] }],
+  request: {
+    params: z.object({ itemId: z.string() }),
+    body: jsonBody(UpdateCartItemBodySchema),
+  },
+  responses: {
+    200: jsonContent(apiSuccessSchema(CartItemSchema), "Quantity updated"),
+    400: jsonContent(apiErrorSchema, "Invalid cart item ID"),
+    404: jsonContent(apiErrorSchema, "Cart item not found"),
+    422: jsonContent(apiValidationErrorSchema, "Validation failed"),
+    ...authErrorResponses,
+  },
+});
+router.patch("/items/:itemId", ...customerOnly, updateCartItemHandler);
 
 // ======================================================
 // ROUTE: REMOVE ITEM FROM CART
