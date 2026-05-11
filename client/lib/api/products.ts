@@ -15,16 +15,29 @@ export const getProductTypes = async () => {
   return response.data;
 };
 
+// ----- GET PRODUCT FILTERS -----
+type GetFilterResponse = ApiResponse<{
+  genders: string[];
+  colors: string[];
+  types: string[];
+  min_price: number;
+  max_price: number;
+}>;
+export const getFilters = async () => {
+  const response = await api.get<GetFilterResponse>("/products/filters");
+  return response.data;
+};
+
 // ----- GET ALL PRODUCTS -----
 interface GetAllProductsParams extends PaginationReqeustParams {
-  type: Product["type"];
-  gender: ProductItem["gender"];
-  color: ProductItem["color"];
-  search: string;
+  type?: string;
+  gender?: string;
+  color?: string;
+  search?: string;
   min_price?: number;
   max_price?: number;
 }
-type GetAllProductsResponse = ApiResponse<PaginatedResponse<Product[]>>;
+type GetAllProductsResponse = ApiResponse<PaginatedResponse<Product>>;
 export const getAllProducts = async (params?: GetAllProductsParams) => {
   const response = await api.get<GetAllProductsResponse>("/products", {
     params,
