@@ -17,11 +17,11 @@
 
 ---
 
-## A honest note before you dive in
+## Overview
 
-I put a lot of effort into this assignment and got most of the way there. The **backend is fully built** — clean feature-based architecture, typed all the way through, OpenAPI spec auto-generated, rate limiting, Zod validation, soft deletes, the works. I'm genuinely happy with how it turned out.
+The backend is fully implemented with a clean feature-based architecture, end-to-end TypeScript, auto-generated OpenAPI spec, Zod validation, rate limiting, and soft deletes.
 
-On the **frontend**, I ran into time constraints. The core customer flows — browsing, searching, filtering, cart management, checkout — are all working. The admin side (product inventory, add/edit product) is functional too. What I didn't get to polish is the UI to the level I originally had in mind. Some rough edges exist. I made the most of the time I had, and everything that matters from the requirements spec is covered.
+The frontend covers all required flows — browsing, search, filtering, cart, checkout, and the admin panel. Due to time constraints, some UI polish is missing, but every feature from the requirements spec is functional and wired to the API.
 
 ---
 
