@@ -1,12 +1,8 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
-import Button from "@/components/ui/Button";
-
 export interface ProductItem {
   id: string;
   gender: string;
-  type: string;
   color: string;
   price: number;
   stock: number;
@@ -16,20 +12,16 @@ export interface ProductItem {
 
 interface ProductItemsTableProps {
   items: ProductItem[];
-  onDeleteItem: (itemId: string) => void;
 }
 
-export default function ProductItemsTable({
-  items,
-  onDeleteItem,
-}: ProductItemsTableProps) {
+export default function ProductItemsTable({ items }: ProductItemsTableProps) {
   const visibleItems = items.filter((item) => !item.is_deleted);
 
   if (visibleItems.length === 0) {
     return (
       <tr>
         <td
-          colSpan={7}
+          colSpan={6}
           className="px-6 py-4 text-center text-sm text-ink-muted bg-neutral-50"
         >
           No items found for this product.
@@ -42,7 +34,7 @@ export default function ProductItemsTable({
     <>
       <tr>
         <td
-          colSpan={7}
+          colSpan={6}
           className="px-0 py-0 bg-neutral-50 border-b border-border"
         >
           <div className="ml-10 border-l border-gray-200">
@@ -52,7 +44,6 @@ export default function ProductItemsTable({
                   <th className="px-4 py-2 font-medium text-ink-muted">
                     Gender
                   </th>
-                  <th className="px-4 py-2 font-medium text-ink-muted">Type</th>
                   <th className="px-4 py-2 font-medium text-ink-muted">
                     Color
                   </th>
@@ -65,9 +56,6 @@ export default function ProductItemsTable({
                   <th className="px-4 py-2 font-medium text-ink-muted">
                     Images
                   </th>
-                  <th className="px-4 py-2 font-medium text-ink-muted sr-only">
-                    Actions
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -78,9 +66,6 @@ export default function ProductItemsTable({
                   >
                     <td className="px-4 py-2 text-ink-soft capitalize">
                       {item.gender}
-                    </td>
-                    <td className="px-4 py-2 text-ink-soft capitalize">
-                      {item.type}
                     </td>
                     <td className="px-4 py-2">
                       <span className="inline-flex items-center gap-1.5">
@@ -111,17 +96,6 @@ export default function ProductItemsTable({
                     </td>
                     <td className="px-4 py-2 text-ink-muted">
                       {item.images.length} image(s)
-                    </td>
-                    <td className="px-4 py-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        iconOnly
-                        onClick={() => onDeleteItem(item.id)}
-                        title="Delete item"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-error-500" />
-                      </Button>
                     </td>
                   </tr>
                 ))}

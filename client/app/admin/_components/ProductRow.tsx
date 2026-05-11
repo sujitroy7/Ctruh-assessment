@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 import clsx from "clsx";
 import Button from "@/components/ui/Button";
 import ProductItemsTable, { ProductItem } from "./ProductItemsTable";
@@ -9,35 +10,23 @@ import ProductItemsTable, { ProductItem } from "./ProductItemsTable";
 export interface Product {
   id: string;
   name: string;
+  type: string;
   is_deleted: boolean;
   items: ProductItem[];
 }
 
 interface ProductRowProps {
   product: Product;
-  onEdit: (product: Product) => void;
-  onDelete: (productId: string) => void;
-  onDeleteItem: (productId: string, itemId: string) => void;
 }
 
-export default function ProductRow({ product, onEdit, onDelete, onDeleteItem }: ProductRowProps) {
+export default function ProductRow({ product }: ProductRowProps) {
   const [expanded, setExpanded] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const totalStock = product.items
     .filter((i) => !i.is_deleted)
     .reduce((sum, i) => sum + i.stock, 0);
 
   const visibleItemCount = product.items.filter((i) => !i.is_deleted).length;
-
-  function handleDeleteClick() {
-    if (confirmDelete) {
-      onDelete(product.id);
-      setConfirmDelete(false);
-    } else {
-      setConfirmDelete(true);
-    }
-  }
 
   return (
     <>
@@ -71,6 +60,9 @@ export default function ProductRow({ product, onEdit, onDelete, onDeleteItem }: 
           {product.name}
         </td>
 
+        {/* Type */}
+        <td className="px-4 py-3 text-ink-soft text-sm capitalize">{product.type}</td>
+
         {/* Item count */}
         <td className="px-4 py-3 text-ink-soft text-sm">{visibleItemCount}</td>
 
@@ -93,50 +85,16 @@ export default function ProductRow({ product, onEdit, onDelete, onDeleteItem }: 
         {/* Actions */}
         <td className="px-4 py-3">
           <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<Pencil />}
-              onClick={() => onEdit(product)}
-            >
-              Edit
-            </Button>
-
-            {confirmDelete ? (
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-error-600 font-medium">Sure?</span>
-                <Button variant="danger" size="sm" onClick={handleDeleteClick}>
-                  Yes
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setConfirmDelete(false)}
-                >
-                  No
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                iconOnly
-                onClick={handleDeleteClick}
-                title="Delete product"
-              >
-                <Trash2 className="w-4 h-4 text-error-500" />
+            <Link href={`/admin/products/${product.id}`}>
+              <Button variant="secondary" size="sm" leftIcon={<Pencil />}>
+                Edit
               </Button>
-            )}
+            </Link>
           </div>
         </td>
       </tr>
 
-      {expanded && (
-        <ProductItemsTable
-          items={product.items}
-          onDeleteItem={(itemId) => onDeleteItem(product.id, itemId)}
-        />
-      )}
+      {expanded && <ProductItemsTable items={product.items} />}
     </>
   );
 }
