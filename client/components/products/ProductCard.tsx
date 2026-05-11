@@ -10,13 +10,13 @@ import { useCartStore } from "@/lib/store/cart";
 import type { Product } from "@/types/products";
 import Button from "@/components/ui/Button";
 
-interface Props extends Pick<Product, "id" | "name" | "items"> {
+interface Props extends Pick<Product, "_id" | "name" | "items"> {
   badge?: string;
   className?: string;
 }
 
 export default function ProductCard({
-  id,
+  _id,
   name,
   items,
   badge,
@@ -95,7 +95,7 @@ export default function ProductCard({
         className,
       )}
     >
-      <Link href={`/products/${id}`} className="relative block">
+      <Link href={`/products/${_id}`} className="relative block">
         <div className="relative w-full aspect-[3/4] bg-neutral-100">
           {image && (
             <Image
@@ -174,7 +174,7 @@ export default function ProductCard({
       <div className="mt-auto px-2 sm:px-3 pb-2 sm:pb-3">
         {isOwner ? (
           <Button
-            href={`/admin/products/${id}`}
+            href={`/admin/products/${_id}`}
             fullWidth
             size="md"
             leftIcon={<Pencil />}
@@ -191,8 +191,8 @@ export default function ProductCard({
             onClick={() => {
               if (!selectedItem || selectedItem.stock <= 0) return;
               addItem({
-                productItemId: selectedItem.id,
-                productId: id,
+                productItemId: selectedItem._id,
+                productId: _id,
                 name,
                 color: selectedItem.color,
                 gender: selectedItem.gender,
